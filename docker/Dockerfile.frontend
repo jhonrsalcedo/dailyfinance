@@ -1,0 +1,20 @@
+# Dockerfile.frontend
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copiar package.json y las dependencias de Node
+COPY frontend/package.json frontend/package-lock.json* ./
+
+# Instalar dependencias (optimizado)
+RUN npm install --frozen-lockfile
+
+# Copiar el resto del código fuente de Next.js
+COPY ./frontend /app
+
+# Construir la app de Next.js (para producción)
+RUN npm run build
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

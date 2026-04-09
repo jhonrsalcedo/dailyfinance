@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: dailyfinance_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    # Para desarrollo local, el frontend corre directamente con npm run dev
+    command: npm run dev
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    container_name: dailyfinance_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./db:/app/db
+    environment:
+      # Desarrollo local: SQLite (sin variable DATABASE_URL)
+      # Producción futura: DATABASE_URL="postgresql://user:password@db:5432/dailyfinance"
+      - PYTHONUNBUFFERED=1
+    # Para desarrollo local, el backend usa SQLite en ./db/dailyfinance.db
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload

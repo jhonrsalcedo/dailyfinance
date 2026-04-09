@@ -1,0 +1,9 @@
+# Default Cursor Rules - Overridden by project
+
+- Always verify if 'engram' is available via MCP to search for previous project decisions.
+- Follow the roles defined in ROLES.md:
+  - Qwen 2.5 Coder for Frontend (Next.js/TS).
+  - DeepSeek Coder V2 for Backend (FastAPI/Python).
+  - Llama 3.3 for DevOps/Docker.
+- Prioritize light Docker images (Alpine/Slim) due to 8GB RAM limit.
+- Format on save using Prettier as configured in settings.json.

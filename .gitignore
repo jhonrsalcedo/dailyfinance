@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.env
+.env.local
+.env.*.local
+
+# Backend
+backend/.venv/
+backend/__pycache__/
+backend/venv/
+
+# Node
+node_modules/
+.next/
+package-lock.json
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/package-lock.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+db/*.db
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs de npm/node
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# OS
+Thumbs.db
+ehthumbs.db
+
+# Docker
+.dockerignore
+
+# Docs
+*.md.bak
