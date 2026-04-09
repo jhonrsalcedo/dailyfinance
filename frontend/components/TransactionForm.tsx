@@ -17,7 +17,6 @@ import {
   InputAdornment,
 } from '@mui/material'
 import { transactionSchema, TransactionFormData } from '@/schemas/transactionSchema'
-import { formatCurrencyCOP, parseCurrencyCOP } from '@/utils/currency'
 
 const API_BASE_URL = 'http://localhost:8000/api/v1'
 
@@ -55,7 +54,7 @@ export default function TransactionForm() {
     queryFn: async () => {
       try {
         await axios.get(`${API_BASE_URL}/categories`)
-      } catch (error) {
+      } catch {
         console.log('Using local categories')
       }
       return categories
@@ -63,7 +62,7 @@ export default function TransactionForm() {
   })
 
   const mutation = useMutation({
-    mutationFn: async (newTransaction: any) => {
+    mutationFn: async (newTransaction: TransactionFormData) => {
       const { data } = await axios.post(`${API_BASE_URL}/transactions`, newTransaction)
       return data
     },
@@ -73,8 +72,9 @@ export default function TransactionForm() {
       setErrorMessage('')
       reset()
     },
-    onError: (error: any) => {
-      setErrorMessage(error.response?.data?.detail || error.message)
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { detail?: string } }; message?: string }
+      setErrorMessage(err.response?.data?.detail || err.message || 'Error')
       setSuccessMessage('')
     },
   })
@@ -138,9 +138,6 @@ export default function TransactionForm() {
                     }}
                     InputProps={{
                       startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                    }}
-                    slotProps={{
-                      htmlInput: { min: 0 }
                     }}
                   />
                 )}

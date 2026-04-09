@@ -2,6 +2,7 @@
   "extends": ["next/core-web-vitals"],
   "rules": {
     "semi": "off",
-    "quotes": ["error", "single"]
+    "quotes": ["error", "single"],
+    "no-console": "warn"
   }
 }

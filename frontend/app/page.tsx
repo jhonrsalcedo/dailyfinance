@@ -29,7 +29,7 @@ interface StatsResponse {
 }
 
 async function fetchStats(): Promise<StatsResponse> {
-  const { data } = await axios.get(`${API_BASE_URL}/transactions/stats`)
+  const { data } = await axios.get<StatsResponse>(`${API_BASE_URL}/transactions/stats`)
   return data
 }
 
@@ -59,6 +59,16 @@ export default function Dashboard() {
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Typography color="error" variant="h6">
           Error al cargar datos: {error.message}
+        </Typography>
+      </Container>
+    )
+  }
+
+  if (!data) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Typography variant="h6">
+          Cargando datos...
         </Typography>
       </Container>
     )
