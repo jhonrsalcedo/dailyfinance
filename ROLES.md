@@ -1,4 +1,4 @@
-# 🤖 Roles de Agente - Daily Finance App (MUI + React Hook Form)
+# 🤖 ROLES.md - Daily Finance App
 
 ## 🎯 Objetivo del Proyecto
 - **Stack:** Next.js 15 + MUI v5 + React Hook Form + Zod + FastAPI
@@ -8,44 +8,88 @@
 
 ---
 
+## 📋 DOCUMENTACIÓN DEL PROYECTO
+
+| Documento | Propósito |
+|-----------|-----------|
+| `DEVELOPMENT_GUIDE.md` | Guía de desarrollo con reglas |
+| `PRE_DEVELOPMENT_CHECKLIST.md` | Checklist antes de empezar |
+| `skills/*.md` | Skills personalizadas |
+| `LEARN_*.md` | Decisiones técnicas |
+| `README.md` | Instrucciones de uso |
+
+---
+
 ## 🟢 FRONTEND ARCHITECT (MUI Specialist)
 
-### Tecnologías
-- **Framework:** Next.js 15 (App Router)
-- **UI:** MUI v5 (@mui/material, @mui/icons-material)
-- **Formularios:** React Hook Form
-- **Validación:** Zod
-- **Gráficos:** Recharts
-- **Estado:** React Query (@tanstack/react-query)
+### Stack
+- Next.js 15 (App Router)
+- MUI v5 (@mui/material)
+- React Hook Form
+- Zod (validación)
+- Recharts (gráficos)
 
-### Reglas de Código
-- Componentes funcionales con hooks
-- TypeScript strict mode
-- Zod schemas para validación de formularios
-- MUI Box, Grid, Container en lugar de divs
+### Reglas
+- Sin punto y coma
+- Comillas simples
+- Componentes máximo 150 líneas
+- Sin comentarios en código
+
+---
 
 ## 🔵 BACKEND ENGINEER (FastAPI Specialist)
 
-### Tecnologías
-- FastAPI, Pydantic, SQLModel
-- SQLite (desarrollo) / PostgreSQL (producción)
+### Stack
+- FastAPI
+- SQLModel (ORM)
+- Pydantic
+- SQLite
 
-### Reglas de Código
+### Reglas
 - Código limpio, sin comentarios excesivos
 - Type hints estrictos
-- Estructura modular
+- Máximo 50 líneas por endpoint
+
+---
+
+## ⚠️ PROCESO: Plan Mode vs Construcción
+
+### Plan Mode (Solo Lectura)
+- ✅ Leer y analizar
+- ✅ Proponer planes
+- ❌ NO editar ni ejecutar
+
+### Construcción (Ejecución)
+- ✅ Crear/editar archivos
+- ✅ Ejecutar comandos
+- ✅ Verificar funciona
+
+### Para cambiar de modo
+- Usuario dice: **"si"** o **"procede"** o **"ejecutar"**
+- Ejecutar **inmediatamente** sin esperar más confirmación
 
 ---
 
 ## 🧠 PROTOCOLO DE MEMORIA (Engram)
 
-1. **CONSULTAR:** Ejecutar `mem_search` antes de cualquier implementación
-2. **APRENDER:** Guardar decisiones técnicas en Engram
-3. **DOCUMENTACIÓN:** Archivos LEARN_*.md
+1. **ANTES:** `mem_search` para buscar contexto previo
+2. **DURANTE:** `mem_save` después de decisiones técnicas
+3. **DESPUÉS:** `mem_session_summary` al cerrar sesión
+
+---
 
 ## ✅ DEFINITION OF DONE (DoD)
 
-- Código compilado sin errores
-- Formularios con validación Zod
-- Componentes MUI con tema personalizado
-- Tests básicos (si aplica)
+- Código compila sin errores
+- Funcionalidad implementada
+- Documentación actualizada
+- Git commit realizado
+
+---
+
+## 📚 READ FIRST
+
+Antes de empezar cualquier desarrollo:
+1. Leer `DEVELOPMENT_GUIDE.md`
+2. Completar `PRE_DEVELOPMENT_CHECKLIST.md`
+3. Definir stack y modelo de datos
