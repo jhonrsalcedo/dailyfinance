@@ -1,17 +1,9 @@
 'use client'
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import { CategoryChartProps } from '@/models'
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#FF6B6B', '#4ECDC4']
-
-interface ChartData {
-  name: string
-  value: number
-}
-
-interface CategoryChartProps {
-  data: ChartData[]
-}
 
 export default function CategoryChart({ data }: CategoryChartProps) {
   return (

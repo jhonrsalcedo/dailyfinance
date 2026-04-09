@@ -16,7 +16,5 @@ export const transactionSchema = z.object({
     .optional(),
   date: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido')
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido'),
 })
-
-export type TransactionFormData = z.infer<typeof transactionSchema>

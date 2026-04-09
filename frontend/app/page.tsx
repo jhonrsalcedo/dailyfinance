@@ -15,18 +15,9 @@ import TransactionForm from '@/components/TransactionForm'
 import CategoryChart from '@/components/CategoryChart'
 import MonthlyTrend from '@/components/MonthlyTrend'
 import { formatCurrencyCOP } from '@/utils/currency'
+import { StatsResponse } from '@/models'
 
 const API_BASE_URL = 'http://localhost:8000/api/v1'
-
-interface Stat {
-  category: string
-  total: number
-}
-
-interface StatsResponse {
-  total_expenses: number
-  expenses_by_category: Stat[]
-}
 
 async function fetchStats(): Promise<StatsResponse> {
   const { data } = await axios.get<StatsResponse>(`${API_BASE_URL}/transactions/stats`)

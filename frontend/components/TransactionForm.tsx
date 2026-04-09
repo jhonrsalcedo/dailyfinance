@@ -16,14 +16,10 @@ import {
   Alert,
   InputAdornment,
 } from '@mui/material'
-import { transactionSchema, TransactionFormData } from '@/schemas/transactionSchema'
+import { transactionSchema } from '@/schemas/transactionSchema'
+import { Category, PaymentMethod, TransactionFormData } from '@/models'
 
 const API_BASE_URL = 'http://localhost:8000/api/v1'
-
-interface Category {
-  id: number
-  name: string
-}
 
 const categories: Category[] = [
   { id: 1, name: 'Ingresos' },
@@ -38,7 +34,7 @@ const categories: Category[] = [
   { id: 10, name: 'Misceláneos' },
 ]
 
-const paymentMethods = [
+const paymentMethods: PaymentMethod[] = [
   { id: 1, name: 'Efectivo' },
   { id: 2, name: 'Tarjeta Débito' },
   { id: 3, name: 'Tarjeta Crédito' },
