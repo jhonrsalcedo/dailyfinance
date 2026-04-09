@@ -1,0 +1,17 @@
+{
+  "name": "app-dailyfinance",
+  "version": "1.0.0",
+  "description": "Aplicación de finanzas personales para control de gastos diarios con categorías, gráficos y estadísticas.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
+  }
+}

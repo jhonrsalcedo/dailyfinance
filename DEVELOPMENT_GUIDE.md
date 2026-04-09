@@ -155,7 +155,64 @@ __pycache__/
 
 ---
 
-## 7. ESTRUCTURA DE PROYECTO ESTÁNDAR
+## 7. GIT WORKFLOW CON CHECKS AUTOMATIZADOS
+
+### Setup Inicial (nuevo proyecto)
+```bash
+# 1. Clonar o inicializar repo
+git init
+
+# 2. Instalar dependencias de desarrollo
+npm install -D husky lint-staged
+
+# 3. Inicializar Husky
+npx husky init
+```
+
+### Flujo de Commit
+```bash
+# 1. Haz cambios en el código
+vim frontend/app/page.tsx
+
+# 2. Stagea los archivos
+git add .
+
+# 3. Commit → Se ejecuta pre-commit automáticamente
+git commit -m "feat: nueva funcionalidad"
+#       ↓
+#  [HUSKY] Ejecuta lint-staged
+#       ↓
+#  Si pasa → Commit creado ✓
+#  Si falla → Muestra errores → Corrige y vuelve a intentar
+```
+
+### Hooks Locales Configurados
+| Hook | Qué hace | Si falla |
+|------|----------|----------|
+| `pre-commit` | `npm run lint` + `npm run typecheck` | Bloquea commit |
+
+### CI/CD en GitHub (con cada push)
+Se ejecuta automáticamente en GitHub Actions:
+
+```yaml
+# Jobs:
+1. lint-and-typecheck  # ESLint + TypeScript
+2. build              # Next.js build (depende de anterior)
+3. backend-checks     # Verificación de backend
+```
+
+### Configuración de Archivos
+```
+├── .husky/
+│   └── pre-commit          # Hook local
+├── lint-staged.config.js   # Config de linting
+└── .github/workflows/
+    └── checks.yml          # Pipeline CI/CD
+```
+
+---
+
+## 8. ESTRUCTURA DE PROYECTO ESTÁNDAR
 
 ```
 proyecto/
@@ -191,7 +248,7 @@ proyecto/
 
 ---
 
-## 8. DEBUGGING COMÚN
+## 9. DEBUGGING COMÚN
 
 ### Error: "Cannot find module"
 - Verificar que las dependencias están instaladas
@@ -211,7 +268,7 @@ proyecto/
 
 ---
 
-## 9. OPTIMIZACIÓN DE TOKENS
+## 10. OPTIMIZACIÓN DE TOKENS
 
 ### Código Limpio
 - No comentarios innecesarios
