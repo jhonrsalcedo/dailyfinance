@@ -33,3 +33,15 @@ CREATE TABLE IF NOT EXISTS monthly_budgets (
     FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE,
     UNIQUE (month, category_id)
 );
+
+CREATE TABLE IF NOT EXISTS user_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT DEFAULT 'Usuario',
+    email TEXT,
+    salary REAL,
+    currency TEXT DEFAULT 'COP',
+    theme TEXT DEFAULT 'light',
+    notifications_enabled INTEGER DEFAULT 1,
+    created_at TEXT,
+    updated_at TEXT
+);
