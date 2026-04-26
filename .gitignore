@@ -66,3 +66,21 @@ ehthumbs.db
 
 # Docs
 *.md.bak
+
+# Environment
+.env.local
+.env.development
+.env.production
+
+# Testing
+coverage/
+htmlcov/
+
+# Build
+dist/
+build/
+.next/
+out/
+
+# Misc
+*.tsbuildinfo

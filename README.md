@@ -2,103 +2,114 @@
 
 Aplicación de finanzas personales para control de gastos diarios con categorías, gráficos y estadísticas.
 
-## Stack Tecnológico
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-005571)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-- **Frontend:** Next.js 15 + MUI v5 + React Hook Form + Zod + Recharts
-- **Backend:** FastAPI + SQLModel + Pydantic
-- **Base de Datos:** SQLite (desarrollo) / PostgreSQL (producción)
-- **Moneda:** Pesos Colombianos (COP)
+## 📋 Descripción
 
-## Requisitos Previos
+Daily Finance es una aplicación web para gestionar tus finanzas personales.-Controla tus ingresos y gastos por categorías
+- Visualiza estadísticas y gráficos
+- Configura presupuestos por categoría
+- Modo oscuro/claro
+- Diseño responsive (móvil y PC)
 
-- Python 3.11+
+## 🚀 Tech Stack
+
+### Frontend
+- **Next.js 15** (App Router)
+- **MUI v5** (Material UI)
+- **React Query** ( estado del servidor)
+- **TypeScript**
+- **Zod** (validación)
+- **Recharts** (gráficos)
+
+### Backend
+- **FastAPI** (Python)
+- **SQLModel** (ORM)
+- **SQLite** (desarrollo) / **PostgreSQL** (producción)
+- **JWT** (autenticación)
+- **Pytest** (testing)
+
+## 🛠️ Instalación
+
+### Prerrequisitos
 - Node.js 18+
-- npm
+- Python 3.12+
+- Docker (opcional)
 
-## Instalación y Ejecución
-
-### Backend (FastAPI)
+### Backend
 
 ```bash
 cd backend
-make install   # Solo la primera vez
-make run       # Inicia en http://localhost:8000
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# .venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+python -m uvicorn main:app --reload
 ```
 
-### Frontend (Next.js)
+El backend corre en http://localhost:8000
+
+### Frontend
 
 ```bash
 cd frontend
-make install   # Solo la primera vez
-make dev       # Inicia en http://localhost:3000
+npm install
+npm run dev
 ```
 
-## Estructura del Proyecto
+El frontend corre en http://localhost:3000
 
-```
-app-dailyfinance/
-├── backend/              # FastAPI + SQLModel
-│   ├── app/
-│   │   ├── routes/       # Endpoints API
-│   │   ├── database.py   # Modelos SQLModel
-│   │   └── schemas.py    # Schemas Pydantic
-│   └── main.py
-├── frontend/             # Next.js + MUI
-│   ├── app/             # Pages y layout
-│   ├── components/      # Componentes React
-│   ├── schemas/         # Schemas Zod
-│   ├── theme/           # Tema MUI
-│   └── utils/           # Utilidades (currency)
-├── db/                  # SQLite + schema + seed
-│   └── dailyfinance.db  # Base de datos
-└── docker/              # Dockerfiles
-```
+## 📖 Documentación
 
-## Categorías Predefinidas
+- [AGENTS.md](AGENTS.md) - Guía para desarrolladores
+- [TESTING_GUIDE.md](TESTING_GUIDE.md) - Guía de testing
+- [DEPLOY.md](DEPLOY.md) - Guía de despliegue
 
-1. Ingresos
-2. Vivienda
-3. Transporte
-4. Alimentación
-5. Entretenimiento
-6. Salud
-7. Vehículo
-8. Familia
-9. Deudas/Crédito
-10. Misceláneos
+## 📱 Funcionalidades
 
-## Métodos de Pago
+| Feature | Descripción |
+|---------|------------|
+| Dashboard | Resumen de finanzas con gráficos |
+| Transacciones | Registro de ingresos/gastos |
+| Categorías | Gestión de categorías |
+| Presupuesto | Límites por categoría |
+| Reports | Estadísticas detalladas |
+| Settings | Configuración personal |
+| Autenticación | Registro/login con JWT |
+| Tema | Modo oscuro/claro |
 
-1. Efectivo
-2. Tarjeta Débito
-3. Tarjeta Crédito
-
-## Endpoints de la API
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | `/api/v1/categories` | Listar categorías |
-| POST | `/api/v1/categories` | Crear categoría |
-| GET | `/api/v1/transactions` | Listar transacciones |
-| POST | `/api/v1/transactions` | Crear transacción |
-| GET | `/api/v1/transactions/stats` | Estadísticas mensuales |
-
-## Formato de Moneda
-
-Los montos se muestran en Pesos Colombianos (COP):
-- `$50.000`
-- `$1.500.000`
-- `$7.878.800`
-
-## Docker (Opcional)
+## 🧪 Testing
 
 ```bash
-docker-compose up --build
+# Frontend
+npm run test
+
+# Backend
+cd backend && make test
 ```
 
-## Documentación de Aprendizaje
+## 📂 Estructura
 
-- `db/LEARN_SQL.md` - Conceptos de SQL y diseño de DB
-- `backend/LEARN_FastAPI.md` - Patrones de FastAPI
-- `frontend/LEARN_NextJS.md` - Patrones de Next.js
-- `docker/LEARN_Docker.md` - Comandos y optimización Docker
+```
+dailyfinance/
+├── frontend/       # Next.js app
+│   ├── app/       # Páginas
+│   ├── components/ # Componentes
+│   └── utils/     # Utilidades
+├── backend/       # FastAPI
+│   ├── app/      # Rutas y lógica
+│   └── tests/    # Tests
+├── docker/        # Docker config
+└── db/           # Base de datos
+```
+
+## 📄 Licencia
+
+MIT
+
+---
+
+Desarrollado con IA 🔧
