@@ -8,69 +8,83 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Card,
   CardContent,
-  CardHeader,
   TextField,
   Button,
   MenuItem,
   Grid,
   Alert,
   InputAdornment,
+  Box,
+  Typography,
+  CircularProgress,
+  Collapse,
+  IconButton,
+  Fade,
+  alpha,
+  useTheme,
 } from '@mui/material'
+import AddIcon from '@mui/icons-material/Add'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
+import PaymentsIcon from '@mui/icons-material/Payments'
 import { transactionSchema } from '@/schemas/transactionSchema'
-import { Category, PaymentMethod, TransactionFormData } from '@/models'
+import { TransactionFormData } from '@/models'
 
 const API_BASE_URL = 'http://localhost:8000/api/v1'
 
-const categories: Category[] = [
-  { id: 1, name: 'Ingresos' },
-  { id: 2, name: 'Vivienda' },
-  { id: 3, name: 'Transporte' },
-  { id: 4, name: 'Alimentación' },
-  { id: 5, name: 'Entretenimiento' },
-  { id: 6, name: 'Salud' },
-  { id: 7, name: 'Vehículo' },
-  { id: 8, name: 'Familia' },
-  { id: 9, name: 'Deudas/Crédito' },
-  { id: 10, name: 'Misceláneos' },
-]
-
-const paymentMethods: PaymentMethod[] = [
-  { id: 1, name: 'Efectivo' },
-  { id: 2, name: 'Tarjeta Débito' },
-  { id: 3, name: 'Tarjeta Crédito' },
-]
-
 export default function TransactionForm() {
+  const theme = useTheme()
   const queryClient = useQueryClient()
+  const [expanded, setExpanded] = useState(true)
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  useQuery({
+  const { data: categories = [] } = useQuery<Array<{id: number, name: string, icon?: string, color?: string}>>({
     queryKey: ['categories'],
     queryFn: async () => {
-      try {
-        await axios.get(`${API_BASE_URL}/categories`)
-      } catch {
-        console.log('Using local categories')
-      }
-      return categories
+      const { data } = await axios.get(`${API_BASE_URL}/categories`)
+      return data
+    },
+  })
+
+  const { data: paymentMethods = [] } = useQuery<Array<{id: number, name: string, type: string}>>({
+    queryKey: ['paymentMethods'],
+    queryFn: async () => {
+      const { data } = await axios.get(`${API_BASE_URL}/payment-methods`)
+      return data
     },
   })
 
   const mutation = useMutation({
     mutationFn: async (newTransaction: TransactionFormData) => {
-      const { data } = await axios.post(`${API_BASE_URL}/transactions`, newTransaction)
+      const { data } = await axios.post(
+        `${API_BASE_URL}/transactions`,
+        newTransaction
+      )
       return data
     },
     onSuccess: () => {
+      setSubmitting(false)
       queryClient.invalidateQueries({ queryKey: ['financeStats'] })
-      setSuccessMessage('¡Transacción registrada exitosamente!')
+      queryClient.invalidateQueries({ queryKey: ['recentTransactions'] })
+      setSuccessMessage('Transacción registrada')
       setErrorMessage('')
-      reset()
+      setTimeout(() => {
+        reset()
+        setSuccessMessage('')
+      }, 4000)
     },
     onError: (error: unknown) => {
-      const err = error as { response?: { data?: { detail?: string } }; message?: string }
-      setErrorMessage(err.response?.data?.detail || err.message || 'Error')
+      setSubmitting(false)
+      const err = error as {
+        response?: { data?: { detail?: string } }
+        message?: string
+      }
+      setErrorMessage(
+        err.response?.data?.detail || err.message || 'Error al registrar'
+      )
       setSuccessMessage('')
     },
   })
@@ -92,144 +106,225 @@ export default function TransactionForm() {
   })
 
   const onSubmit = (formData: TransactionFormData) => {
+    setSubmitting(true)
     mutation.mutate(formData)
   }
 
+  const isLoading = mutation.isPending || submitting
+
   return (
-    <Card sx={{ mb: 3 }}>
-      <CardHeader
-        title="Registrar Nueva Transacción"
-        titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}
-      />
-      <CardContent>
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
-            {successMessage}
-          </Alert>
-        )}
-        {errorMessage && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMessage('')}>
-            {errorMessage}
-          </Alert>
-        )}
+    <Card
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        mb: 3,
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          px: 3,
+          py: 2,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          bgcolor: alpha(theme.palette.primary.main, 0.02),
+          cursor: 'pointer',
+        }}
+        onClick={() => setExpanded(!expanded)}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <PaymentsIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+          <Typography variant="subtitle1" fontWeight={600}>
+            Agregar Movimientos
+          </Typography>
+        </Box>
+        <IconButton size="small">
+          {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+        </IconButton>
+      </Box>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <Controller
-                name="amount"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Monto"
-                    type="number"
-                    fullWidth
-                    error={!!errors.amount}
-                    helperText={errors.amount?.message?.toString()}
-                    value={field.value ?? ''}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      field.onChange(val === '' ? undefined : Number(val))
-                    }}
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                    }}
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Controller
-                name="category_id"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    select
-                    label="Categoría"
-                    fullWidth
-                    error={!!errors.category_id}
-                    helperText={errors.category_id?.message?.toString()}
-                    value={field.value ?? ''}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  >
-                    <MenuItem value="" disabled>
-                      Seleccionar categoría
-                    </MenuItem>
-                    {categories.map((cat) => (
-                      <MenuItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Controller
-                name="method_id"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    select
-                    label="Método de Pago"
-                    fullWidth
-                    error={!!errors.method_id}
-                    helperText={errors.method_id?.message?.toString()}
-                    value={field.value ?? ''}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  >
-                    <MenuItem value="" disabled>
-                      Seleccionar método
-                    </MenuItem>
-                    {paymentMethods.map((method) => (
-                      <MenuItem key={method.id} value={method.id}>
-                        {method.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Controller
-                name="description"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Descripción"
-                    fullWidth
-                    multiline
-                    rows={2}
-                    error={!!errors.description}
-                    helperText={errors.description?.message?.toString() || 'Ej: Pizza en Familia'}
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                size="large"
-                fullWidth
-                disabled={mutation.isPending}
-                sx={{ mt: 1 }}
+      <Collapse in={expanded}>
+        <CardContent sx={{ p: 3 }}>
+          {successMessage && (
+            <Fade in={!!successMessage} timeout={300}>
+              <Alert
+                severity="success"
+                icon={<CheckCircleIcon />}
+                sx={{ mb: 2, borderRadius: 1 }}
+                onClose={() => setSuccessMessage('')}
               >
-                {mutation.isPending ? 'Guardando...' : 'Registrar Transacción'}
-              </Button>
+                {successMessage}
+              </Alert>
+            </Fade>
+          )}
+
+          {errorMessage && (
+            <Fade in={!!errorMessage} timeout={300}>
+              <Alert
+                severity="error"
+                sx={{ mb: 2, borderRadius: 1 }}
+                onClose={() => setErrorMessage('')}
+              >
+                {errorMessage}
+              </Alert>
+            </Fade>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} sm={6} md={3}>
+                <Controller
+                  name="amount"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Monto"
+                      type="number"
+                      fullWidth
+                      size="medium"
+                      disabled={isLoading}
+                      error={!!errors.amount}
+                      helperText={errors.amount?.message?.toString()}
+                      value={field.value ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        field.onChange(val === '' ? undefined : Number(val))
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">$</InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={3}>
+                <Controller
+                  name="category_id"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      select
+                      label="Categoría"
+                      fullWidth
+                      size="medium"
+                      disabled={isLoading}
+                      error={!!errors.category_id}
+                      helperText={errors.category_id?.message?.toString()}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    >
+                      <MenuItem value="" disabled>
+                        --
+                      </MenuItem>
+                      {categories.map((cat) => (
+                        <MenuItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={3}>
+                <Controller
+                  name="method_id"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      select
+                      label="Método"
+                      fullWidth
+                      size="medium"
+                      disabled={isLoading}
+                      error={!!errors.method_id}
+                      helperText={errors.method_id?.message?.toString()}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    >
+                      <MenuItem value="" disabled>
+                        --
+                      </MenuItem>
+                      {paymentMethods.map((method) => (
+                        <MenuItem key={method.id} value={method.id}>
+                          {method.name}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={3}>
+                <Controller
+                  name="date"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Fecha"
+                      type="date"
+                      fullWidth
+                      size="medium"
+                      disabled={isLoading}
+                      error={!!errors.date}
+                      helperText={errors.date?.message?.toString()}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={8}>
+                <Controller
+                  name="description"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Descripción"
+                      placeholder="Opcional"
+                      fullWidth
+                      size="medium"
+                      disabled={isLoading}
+                      error={!!errors.description}
+                      helperText={errors.description?.message?.toString()}
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  size="medium"
+                  disabled={submitting}
+                  sx={{ minHeight: 47 }}
+                >
+                  {submitting ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <>
+                      <AddIcon sx={{ mr: 1 }} />
+                      Agregar
+                    </>
+                  )}
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
-      </CardContent>
+          </form>
+        </CardContent>
+      </Collapse>
     </Card>
   )
 }
