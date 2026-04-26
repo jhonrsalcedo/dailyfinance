@@ -1,9 +1,42 @@
-# Default Cursor Rules - Overridden by project
+# Cursor Rules - Daily Finance App
 
+## Configuración General
 - Always verify if 'engram' is available via MCP to search for previous project decisions.
-- Follow the roles defined in ROLES.md:
-  - Qwen 2.5 Coder for Frontend (Next.js/TS).
-  - DeepSeek Coder V2 for Backend (FastAPI/Python).
-  - Llama 3.3 for DevOps/Docker.
-- Prioritize light Docker images (Alpine/Slim) due to 8GB RAM limit.
-- Format on save using Prettier as configured in settings.json.
+- Prioritize light Docker images (Alpine/Slim) for development.
+
+## Stack del Proyecto
+- Frontend: Next.js 15 + MUI + TypeScript
+- Backend: FastAPI + Python 3.11
+- DB: SQLite (desarrollo)
+
+## Reglas para Proyecto Escalable
+
+### Alta Prioridad (obligatorias)
+- TypeScript strict mode habilitado
+- Type hints en todas las funciones Python
+- Tests obligatorios antes de commit (coverage 80% mínimo)
+- ESLint + TypeScript chequeos pasan
+
+### Media Prioridad
+- Componentes pequeños (máx 100-150 líneas)
+- Documentar decisiones técnicas en LEARN_*.md
+- No console.log de debug en código
+
+### Formato (según equipo)
+- Comillas simples (estándar del proyecto)
+- Se permite punto y coma si el equipo lo prefiere
+
+## Git Workflow
+- Pre-commit hooks configurado (lint-staged + tests)
+- Verificar que husky pase antes de commit
+- No hacer commit si tests fallan
+
+## Documentación
+- LEARN_*.md para decisiones técnicas
+- DEVELOPMENT_GUIDE.md para reglas completas  
+- AGENTS.md para instrucciones AI universales
+
+## Notas Importantes
+- El salary del usuario se guarda en tabla user_settings de SQLite
+- Dashboard muestra balance en tiempo real vs salary
+- Transacciones recientes aparecen en dashboard
