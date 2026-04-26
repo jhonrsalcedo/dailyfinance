@@ -8,6 +8,7 @@ import { Box, Toolbar } from '@mui/material'
 import { createAppTheme } from '@/theme/theme'
 import { Sidebar, DRAWER_WIDTH } from '@/components/Sidebar'
 import { TopBar } from '@/components/TopBar'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 const queryClient = new QueryClient()
 
@@ -54,33 +55,35 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MuiThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-          <TopBar
-            onMobileMenuClick={handleMobileMenuToggle}
-            onThemeToggle={toggleTheme}
-            themeMode={mode}
-          />
-          <Sidebar mobileOpen={mobileOpen} onMobileClose={handleMobileClose} />
-          <Box
-            component="main"
-            sx={{
-              flexGrow: 1,
-              width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
-              ml: { md: `${DRAWER_WIDTH}px` },
-              minHeight: '100vh',
-              bgcolor: 'background.default',
-              pt: { xs: 2, md: 3 },
-              px: { xs: 2, md: 3 },
-              transition: 'padding 0.3s ease',
-            }}
-          >
-            <Toolbar />
-            {children}
+      <AuthProvider>
+        <MuiThemeProvider theme={theme}>
+          <CssBaseline />
+          <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+            <TopBar
+              onMobileMenuClick={handleMobileMenuToggle}
+              onThemeToggle={toggleTheme}
+              themeMode={mode}
+            />
+            <Sidebar mobileOpen={mobileOpen} onMobileClose={handleMobileClose} />
+            <Box
+              component="main"
+              sx={{
+                flexGrow: 1,
+                width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+                ml: { md: `${DRAWER_WIDTH}px` },
+                minHeight: '100vh',
+                bgcolor: 'background.default',
+                pt: { xs: 2, md: 3 },
+                px: { xs: 2, md: 3 },
+                transition: 'padding 0.3s ease',
+              }}
+            >
+              <Toolbar />
+              {children}
+            </Box>
           </Box>
-        </Box>
-      </MuiThemeProvider>
+        </MuiThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   )
 }

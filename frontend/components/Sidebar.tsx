@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Box,
@@ -16,7 +16,7 @@ import {
   useMediaQuery,
   alpha,
   SwipeableDrawer,
-  Zoom,
+  Tooltip,
 } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import ReceiptIcon from '@mui/icons-material/Receipt'
@@ -24,21 +24,24 @@ import BarChartIcon from '@mui/icons-material/BarChart'
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import SettingsIcon from '@mui/icons-material/Settings'
 import CloseIcon from '@mui/icons-material/Close'
+import LoginIcon from '@mui/icons-material/Login'
+import { useAuth } from '@/contexts/AuthContext'
+import { useTranslation } from '@/utils/i18n'
 
 export const DRAWER_WIDTH = 260
 
-interface NavItem {
+const navItems: Array<{
   label: string
+  labelKey: string
   icon: React.ReactNode
   href: string
-}
-
-const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: <DashboardIcon />, href: '/' },
-  { label: 'Transacciones', icon: <ReceiptIcon />, href: '/transactions' },
-  { label: 'Reportes', icon: <BarChartIcon />, href: '/reports' },
-  { label: 'Presupuesto', icon: <AccountBalanceWalletIcon />, href: '/budget' },
-  { label: 'Configuración', icon: <SettingsIcon />, href: '/settings' },
+  requiresAuth?: boolean
+}> = [
+  { label: 'Panel', labelKey: 'nav.dashboard', icon: <DashboardIcon />, href: '/' },
+  { label: 'Transacciones', labelKey: 'nav.transactions', icon: <ReceiptIcon />, href: '/transactions', requiresAuth: true },
+  { label: 'Reportes', labelKey: 'nav.reports', icon: <BarChartIcon />, href: '/reports' },
+  { label: 'Presupuesto', labelKey: 'nav.budget', icon: <AccountBalanceWalletIcon />, href: '/budget', requiresAuth: true },
+  { label: 'Configuración', labelKey: 'nav.settings', icon: <SettingsIcon />, href: '/settings', requiresAuth: true },
 ]
 
 interface SidebarProps {
@@ -48,8 +51,34 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const { isAuthenticated } = useAuth()
+  const { t, language } = useTranslation()
+
+  const getLabel = (labelKey: string): string => {
+    if (language === 'en') {
+      const enLabels: Record<string, string> = {
+        'nav.dashboard': 'Dashboard',
+        'nav.transactions': 'Transactions',
+        'nav.reports': 'Reports',
+        'nav.budget': 'Budget',
+        'nav.settings': 'Settings',
+      }
+      return enLabels[labelKey] || labelKey
+    }
+    return t(labelKey)
+  }
+
+  const handleItemClick = (item: typeof navItems[0]) => {
+    if (item.requiresAuth && !isAuthenticated) {
+      router.push('/login')
+      if (isMobile) onMobileClose()
+      return
+    }
+    if (isMobile) onMobileClose()
+  }
 
   const drawerContent = (
     <Box
@@ -98,7 +127,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
               Daily Finance
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-              Gestión Personal
+              {language === 'en' ? 'Personal Finance' : 'Gestión Personal'}
             </Typography>
           </Box>
         </Box>
@@ -112,44 +141,68 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       <List sx={{ px: 2, py: 2, flex: 1 }}>
         {navItems.map((item) => {
           const isActive = pathname === item.href
+          const needsAuth = item.requiresAuth
+          const isDisabled = needsAuth && !isAuthenticated
+
           return (
-            <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>
-              <ListItemButton
-                component={Link}
-                href={item.href}
-                onClick={onMobileClose}
-                sx={{
-                  borderRadius: 2,
-                  py: 1.5,
-                  px: 2,
-                  bgcolor: isActive ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
-                  color: isActive ? 'primary.main' : 'text.secondary',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    bgcolor: isActive
-                      ? alpha(theme.palette.primary.main, 0.12)
-                      : alpha(theme.palette.primary.main, 0.04),
-                  },
-                }}
-              >
-                <ListItemIcon
+            <Tooltip
+              key={item.href}
+              title={isDisabled ? t('tooltip.loginRequired') : ''}
+              placement="right"
+              arrow
+            >
+              <ListItem disablePadding sx={{ mb: 0.5 }}>
+                <ListItemButton
+                  component={Link}
+                  href={isDisabled ? '#' : item.href}
+                  onClick={() => handleItemClick(item)}
+                  disabled={isDisabled}
                   sx={{
-                    minWidth: 40,
-                    color: isActive ? 'primary.main' : 'text.secondary',
-                    transition: 'color 0.2s ease',
+                    borderRadius: 2,
+                    py: 1.5,
+                    px: 2,
+                    bgcolor: isActive ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                    color: isDisabled
+                      ? alpha(theme.palette.text.primary, 0.38)
+                      : isActive
+                      ? 'primary.main'
+                      : 'text.secondary',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      bgcolor: isDisabled
+                        ? alpha(theme.palette.primary.main, 0.04)
+                        : isActive
+                        ? alpha(theme.palette.primary.main, 0.12)
+                        : alpha(theme.palette.primary.main, 0.04),
+                    },
+                    '&.Mui-disabled': {
+                      opacity: 0.5,
+                    },
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{
-                    fontWeight: isActive ? 600 : 500,
-                    fontSize: '0.875rem',
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 40,
+                      color: isDisabled
+                        ? alpha(theme.palette.text.primary, 0.38)
+                        : isActive
+                        ? 'primary.main'
+                        : 'text.secondary',
+                      transition: 'color 0.2s ease',
+                    }}
+                  >
+                    {isDisabled && needsAuth ? <LoginIcon /> : item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={getLabel(item.labelKey)}
+                    primaryTypographyProps={{
+                      fontWeight: isActive ? 600 : 500,
+                      fontSize: '0.875rem',
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            </Tooltip>
           )
         })}
       </List>
@@ -159,11 +212,10 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           p: 2,
           borderTop: '1px solid',
           borderColor: 'divider',
-          textAlign: 'center',
         }}
       >
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          v1.0.0
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center' }}>
+          {language === 'en' ? 'v1.0.0' : 'v1.0.0'}
         </Typography>
       </Box>
     </Box>
@@ -187,9 +239,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
             },
           }}
         >
-          <Zoom in={mobileOpen} timeout={300}>
-            <Box>{drawerContent}</Box>
-          </Zoom>
+          {drawerContent}
         </SwipeableDrawer>
       ) : (
         <Drawer

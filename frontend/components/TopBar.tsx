@@ -12,8 +12,10 @@ import {
   Menu,
   MenuItem,
   Divider,
+  Button,
   useTheme,
   alpha,
+  Tooltip,
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
@@ -21,7 +23,11 @@ import SettingsIcon from '@mui/icons-material/Settings'
 import LogoutIcon from '@mui/icons-material/Logout'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
+import LoginIcon from '@mui/icons-material/Login'
+import LanguageIcon from '@mui/icons-material/Language'
 import { DRAWER_WIDTH } from './Sidebar'
+import { useAuth } from '@/contexts/AuthContext'
+import { useTranslation } from '@/utils/i18n'
 
 interface TopBarProps {
   onMobileMenuClick: () => void
@@ -36,19 +42,23 @@ function formatDate(date: Date): string {
     month: 'long',
     day: 'numeric',
   }
-  return date.toLocaleDateString('es-CO', options)
+  const locale = localStorage.getItem('language') === 'en' ? 'en-US' : 'es-CO'
+  return date.toLocaleDateString(locale, options)
 }
 
 function getGreeting(): string {
   const hour = new Date().getHours()
-  if (hour < 12) return 'Buenos días'
-  if (hour < 18) return 'Buenas tardes'
-  return 'Buenas noches'
+  const lang = localStorage.getItem('language') || 'es'
+  if (hour < 12) return lang === 'en' ? 'Good morning' : 'Buenos días'
+  if (hour < 18) return lang === 'en' ? 'Good afternoon' : 'Buenas tardes'
+  return lang === 'en' ? 'Good evening' : 'Buenas noches'
 }
 
 export function TopBar({ onMobileMenuClick, onThemeToggle, themeMode = 'light' }: TopBarProps) {
   const theme = useTheme()
   const router = useRouter()
+  const { isAuthenticated, user, logout } = useAuth()
+  const { t, language, changeLanguage } = useTranslation()
   const [currentDate, setCurrentDate] = useState('')
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
@@ -67,6 +77,20 @@ export function TopBar({ onMobileMenuClick, onThemeToggle, themeMode = 'light' }
   const handleSettingsClick = () => {
     handleMenuClose()
     router.push('/settings')
+  }
+
+  const handleLoginClick = () => {
+    router.push('/login')
+  }
+
+  const handleLogout = () => {
+    handleMenuClose()
+    logout()
+    router.push('/')
+  }
+
+  const handleLanguageToggle = () => {
+    changeLanguage(language === 'es' ? 'en' : 'es')
   }
 
   return (
@@ -126,6 +150,19 @@ export function TopBar({ onMobileMenuClick, onThemeToggle, themeMode = 'light' }
             </Typography>
           </Box>
 
+          <Tooltip title={language === 'es' ? 'Cambiar a inglés' : 'Switch to English'}>
+            <IconButton
+              onClick={handleLanguageToggle}
+              sx={{
+                p: 1,
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.primary.main, 0.04),
+              }}
+            >
+              <LanguageIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+            </IconButton>
+          </Tooltip>
+
           {onThemeToggle && (
             <IconButton
               onClick={onThemeToggle}
@@ -143,58 +180,71 @@ export function TopBar({ onMobileMenuClick, onThemeToggle, themeMode = 'light' }
             </IconButton>
           )}
 
-          <IconButton onClick={handleMenuOpen} sx={{ p: 0.5 }}>
-            <Avatar
-              sx={{
-                width: 36,
-                height: 36,
-                bgcolor: 'primary.main',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-              }}
+          {!isAuthenticated ? (
+            <Button
+              variant="contained"
+              startIcon={<LoginIcon />}
+              onClick={handleLoginClick}
+              sx={{ borderRadius: 2 }}
             >
-              U
-            </Avatar>
-          </IconButton>
+              {t('auth.login')}
+            </Button>
+          ) : (
+            <>
+              <IconButton onClick={handleMenuOpen} sx={{ p: 0.5 }}>
+                <Avatar
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    bgcolor: 'primary.main',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  {user?.username?.[0]?.toUpperCase() || 'U'}
+                </Avatar>
+              </IconButton>
 
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            PaperProps={{
-              sx: {
-                mt: 1,
-                minWidth: 200,
-                borderRadius: 2,
-                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                border: '1px solid',
-                borderColor: 'divider',
-              },
-            }}
-          >
-            <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Usuario
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                usuario@correo.com
-              </Typography>
-            </Box>
-            <Divider />
-            <MenuItem onClick={handleSettingsClick}>
-              <SettingsIcon sx={{ mr: 1.5, fontSize: 20, color: 'text.secondary' }} />
-              <Typography variant="body2">Configuración</Typography>
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={handleMenuClose}>
-              <LogoutIcon sx={{ mr: 1.5, fontSize: 20, color: 'error.main' }} />
-              <Typography variant="body2" sx={{ color: 'error.main' }}>
-                Cerrar sesión
-              </Typography>
-            </MenuItem>
-          </Menu>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                PaperProps={{
+                  sx: {
+                    mt: 1,
+                    minWidth: 200,
+                    borderRadius: 2,
+                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  },
+                }}
+              >
+                <Box sx={{ px: 2, py: 1.5 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {user?.username || 'Usuario'}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {user?.email}
+                  </Typography>
+                </Box>
+                <Divider />
+                <MenuItem onClick={handleSettingsClick}>
+                  <SettingsIcon sx={{ mr: 1.5, fontSize: 20, color: 'text.secondary' }} />
+                  <Typography variant="body2">{t('nav.settings')}</Typography>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleLogout}>
+                  <LogoutIcon sx={{ mr: 1.5, fontSize: 20, color: 'error.main' }} />
+                  <Typography variant="body2" sx={{ color: 'error.main' }}>
+                    {t('auth.logout')}
+                  </Typography>
+                </MenuItem>
+              </Menu>
+            </>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

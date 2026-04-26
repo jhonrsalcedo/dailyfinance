@@ -1,5 +1,5 @@
 export type { Category, PaymentMethod, TransactionFormData, Transaction, TransactionListResponse } from './transaction'
 export type { ChartData, CategoryChartProps } from './chart'
 export type { Stat, StatsResponse } from './stats'
-export type { UserSettings, SettingsUpdate, ProfileUpdate } from './settings'
+export type { UserSettings, SettingsUpdate, ProfileUpdate, User } from './settings'
 export { CURRENCIES } from './settings'

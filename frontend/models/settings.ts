@@ -9,6 +9,12 @@ export interface UserSettings {
   updated_at: string | null
 }
 
+export interface User {
+  id: number
+  email: string
+  username?: string
+}
+
 export interface SettingsUpdate {
   salary: number | null
 }

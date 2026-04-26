@@ -27,9 +27,11 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import { authApi } from '@/utils/auth'
 import { registerSchema, PASSWORD_REQUIREMENTS } from '@/schemas/authSchema'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { login } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -91,10 +93,10 @@ export default function LoginPage() {
 
     try {
       if (isLogin) {
-        await authApi.login(email, password)
+        await login(email, password)
       } else {
         await authApi.register(email, password, username || undefined)
-        await authApi.login(email, password)
+        await login(email, password)
       }
       router.push('/')
     } catch (err: unknown) {
