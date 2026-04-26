@@ -35,11 +35,31 @@ Daily Finance es una aplicación web para gestionar tus finanzas personales.-Con
 ## 🛠️ Instalación
 
 ### Prerrequisitos
-- Node.js 18+
-- Python 3.12+
-- Docker (opcional)
+- Node.js 18+ (desarrollo local)
+- Python 3.11+ (desarrollo local)
+- **Docker** (recommended)
 
-### Backend
+---
+
+### 🚀 Opción 1: Docker Compose (Recomendado)
+
+Un solo comando para ejecutar todo:
+
+```bash
+docker-compose up --build
+```
+
+Esto inicia:
+- Backend en http://localhost:8000
+- Frontend en http://localhost:3000
+
+Para detener: `Ctrl + C` o en otra terminal `docker-compose down`
+
+---
+
+### 💻 Opción 2: Desarrollo Local
+
+#### Backend
 
 ```bash
 cd backend
@@ -52,7 +72,7 @@ python -m uvicorn main:app --reload
 
 El backend corre en http://localhost:8000
 
-### Frontend
+#### Frontend
 
 ```bash
 cd frontend
