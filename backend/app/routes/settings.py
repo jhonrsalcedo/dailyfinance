@@ -1,7 +1,8 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
 from app.database import engine, UserSettings
+from app.routes.auth import get_current_user, User
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -12,6 +13,7 @@ def get_db():
 
 class SettingsResponse(BaseModel):
     id: int | None
+    user_id: int | None
     username: str | None
     email: str | None
     salary: float | None
@@ -19,6 +21,7 @@ class SettingsResponse(BaseModel):
     notifications_enabled: bool | None
     created_at: str | None
     updated_at: str | None
+    onboarding_completed: bool | None
 
 class ProfileUpdate(BaseModel):
     username: str | None = None
@@ -49,24 +52,59 @@ def get_or_create_settings() -> UserSettings:
         session.close()
 
 @router.get("/", response_model=SettingsResponse)
-def get_settings():
-    settings = get_or_create_settings()
-    return settings
-
-@router.get("/profile", response_model=SettingsResponse)
-def get_profile():
-    settings = get_or_create_settings()
-    return settings
-
-@router.put("/profile", response_model=SettingsResponse)
-def update_profile(profile_update: ProfileUpdate):
+def get_settings(current_user: User = Depends(get_current_user)):
     session = get_db()
     try:
-        settings = session.exec(select(UserSettings).where(UserSettings.id == 1)).first()
+        settings = session.exec(select(UserSettings).where(UserSettings.user_id == current_user.id)).first()
+        if not settings:
+            settings = UserSettings(
+                user_id=current_user.id,
+                username=current_user.username,
+                email=current_user.email,
+                salary=0,
+                currency="COP",
+                notifications_enabled=True,
+                onboarding_completed=False,
+                created_at=datetime.now().isoformat()
+            )
+            session.add(settings)
+            session.commit()
+            session.refresh(settings)
+        return settings
+    finally:
+        session.close()
+
+@router.get("/profile", response_model=SettingsResponse)
+def get_profile(current_user: User = Depends(get_current_user)):
+    session = get_db()
+    try:
+        settings = session.exec(select(UserSettings).where(UserSettings.user_id == current_user.id)).first()
+        if not settings:
+            settings = UserSettings(
+                user_id=current_user.id,
+                username=current_user.username,
+                email=current_user.email,
+                salary=0,
+                currency="COP",
+                onboarding_completed=False,
+                created_at=datetime.now().isoformat()
+            )
+            session.add(settings)
+            session.commit()
+            session.refresh(settings)
+        return settings
+    finally:
+        session.close()
+
+@router.put("/profile", response_model=SettingsResponse)
+def update_profile(profile_update: ProfileUpdate, current_user: User = Depends(get_current_user)):
+    session = get_db()
+    try:
+        settings = session.exec(select(UserSettings).where(UserSettings.user_id == current_user.id)).first()
         now = datetime.now().isoformat()
         
         if not settings:
-            settings = UserSettings(id=1)
+            settings = UserSettings(user_id=current_user.id)
             session.add(settings)
         
         if profile_update.username is not None:
@@ -110,5 +148,27 @@ def update_settings(settings_update: SettingsUpdate):
         session.commit()
         session.refresh(settings)
         return settings
+    finally:
+        session.close()
+
+@router.post("/onboarding-complete")
+def complete_onboarding(current_user: User = Depends(get_current_user)):
+    session = get_db()
+    try:
+        settings = session.exec(select(UserSettings).where(UserSettings.user_id == current_user.id)).first()
+        if settings:
+            settings.onboarding_completed = True
+            settings.updated_at = datetime.now().isoformat()
+            session.commit()
+        return {"onboarding_completed": True}
+    finally:
+        session.close()
+
+@router.get("/onboarding-status")
+def get_onboarding_status(current_user: User = Depends(get_current_user)):
+    session = get_db()
+    try:
+        settings = session.exec(select(UserSettings).where(UserSettings.user_id == current_user.id)).first()
+        return {"onboarding_completed": settings.onboarding_completed if settings else False}
     finally:
         session.close()

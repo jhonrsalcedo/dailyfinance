@@ -10,7 +10,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
-from app.database import engine, User
+from app.database import engine, User, UserSettings
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
@@ -119,6 +119,20 @@ def register(user_data: UserCreate, session: Session = Depends(get_db)):
     session.add(new_user)
     session.commit()
     session.refresh(new_user)
+
+    user_settings = UserSettings(
+        user_id=new_user.id,
+        username=user_data.username or "Usuario",
+        email=user_data.email,
+        salary=0,
+        currency="COP",
+        notifications_enabled=True,
+        onboarding_completed=False,
+        created_at=datetime.now().isoformat()
+    )
+    session.add(user_settings)
+    session.commit()
+
     return new_user
 
 @router.post("/login", response_model=TokenResponse)

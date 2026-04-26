@@ -9,6 +9,7 @@ import { createAppTheme } from '@/theme/theme'
 import { Sidebar, DRAWER_WIDTH } from '@/components/Sidebar'
 import { TopBar } from '@/components/TopBar'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { OnboardingChecker } from '@/components/OnboardingChecker'
 
 const queryClient = new QueryClient()
 
@@ -56,6 +57,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <OnboardingChecker />
         <MuiThemeProvider theme={theme}>
           <CssBaseline />
           <Box sx={{ display: 'flex', minHeight: '100vh' }}>

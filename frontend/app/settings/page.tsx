@@ -32,10 +32,12 @@ import SaveIcon from '@mui/icons-material/Save'
 import PersonIcon from '@mui/icons-material/Person'
 import CategoryIcon from '@mui/icons-material/Category'
 import PaymentIcon from '@mui/icons-material/Payment'
+import HomeTourIcon from '@mui/icons-material/HomeWork'
 import { formatCurrencyCOP } from '@/utils/currency'
 import { UserSettings } from '@/models'
 import { UserProfile } from '@/components/UserProfile'
 import { IconPicker, getMUIcon } from '@/components/IconPicker'
+import { OnboardingModal } from '@/components/OnboardingModal'
 
 const API_BASE_URL = 'http://localhost:8000/api/v1'
 
@@ -122,6 +124,7 @@ export default function SettingsPage() {
   const [tabValue, setTabValue] = useState(0)
   const [salary, setSalary] = useState<string>('')
   const [categoryList, setCategoryList] = useState<Category[]>([])
+  const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [categoryDialog, setCategoryDialog] = useState<{ open: boolean; category: Category | null }>({
     open: false,
     category: null,
@@ -209,14 +212,29 @@ export default function SettingsPage() {
 
   return (
     <Container maxWidth="xl">
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={700} sx={{ mb: 1 }}>
-          Configuración
-        </Typography>
-        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-          Administra tu información personal y categorías
-        </Typography>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700} sx={{ mb: 1 }}>
+            Configuración
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+            Administra tu información personal y categorías
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          startIcon={<HomeTourIcon />}
+          onClick={() => setOnboardingOpen(true)}
+          sx={{ mt: 1 }}
+        >
+          Tour
+        </Button>
       </Box>
+
+      <OnboardingModal
+        open={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
+      />
 
       <Tabs
         value={tabValue}

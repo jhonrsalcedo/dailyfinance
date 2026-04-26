@@ -43,10 +43,12 @@ class MonthlyBudget(SQLModel, table=True):
 
 class UserSettings(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", unique=True)
     username: Optional[str] = Field(default="Usuario", max_length=100)
     email: Optional[str] = Field(default=None, max_length=255)
-    salary: Optional[float] = Field(default=None)
+    salary: Optional[float] = Field(default=0)
     currency: Optional[str] = Field(default="COP", max_length=3)
     notifications_enabled: Optional[bool] = Field(default=True)
     created_at: Optional[str] = Field(default=None)
     updated_at: Optional[str] = Field(default=None)
+    onboarding_completed: Optional[bool] = Field(default=False)
