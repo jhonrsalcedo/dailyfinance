@@ -12,6 +12,10 @@ import {
   FormControlLabel,
   Avatar,
   Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material'
 import { UserSettings, ProfileUpdate, CURRENCIES } from '@/models'
 import { Loading } from '@/components/Loading'
@@ -149,19 +153,20 @@ export function UserProfile({ onSave }: UserProfileProps) {
           />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            select
-            label="Moneda"
-            fullWidth
-            value={formData.currency}
-            onChange={(e) => handleChange('currency', e.target.value)}
-          >
-            {CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name} ({c.symbol})
-              </option>
-            ))}
-          </TextField>
+          <FormControl fullWidth>
+            <InputLabel>Moneda</InputLabel>
+            <Select
+              label="Moneda"
+              value={formData.currency}
+              onChange={(e) => handleChange('currency', e.target.value)}
+            >
+              {CURRENCIES.map((c) => (
+                <MenuItem key={c.code} value={c.code}>
+                  {c.name} ({c.symbol})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Grid>
         <Grid item xs={12}>
           <FormControlLabel

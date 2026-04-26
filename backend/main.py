@@ -7,6 +7,7 @@ from sqlmodel import SQLModel
 from sqlalchemy.exc import IntegrityError
 from contextlib import asynccontextmanager
 from app.config import engine, create_db_and_tables
+from app.seed import seed_database
 from app.routes.auth import router as auth_router
 from app.routes.transactions import router as transaction_router
 from app.routes.categories import router as category_router
@@ -20,9 +21,10 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Inicializando base de datos (SQLite localmente)...")
+    print("Inicializando base de datos...")
     create_db_and_tables(engine)
-    print("DB lista.")
+    seed_database()
+    print("DB lista con datos por defecto.")
     yield
     print("Apagando servicios...")
 
