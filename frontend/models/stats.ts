@@ -1,6 +1,7 @@
 export interface Stat {
   category: string
   total: number
+  count: number
 }
 
 export interface StatsResponse {
