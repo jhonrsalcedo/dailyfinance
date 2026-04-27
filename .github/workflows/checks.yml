@@ -95,6 +95,17 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-asyncio httpx pytest-cov
 
+      - name: Initialize database and seed data
+        run: |
+          cd backend
+          python -c "
+from app.config import create_db_and_tables, engine
+from app.seed import seed_database
+create_db_and_tables(engine)
+seed_database()
+print('Database initialized and seeded')
+"
+
       - name: Run backend tests
         run: |
           cd backend
