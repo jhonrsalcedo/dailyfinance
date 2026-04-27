@@ -1,37 +1,44 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { OnboardingModal } from '@/components/OnboardingModal'
-import { useAuth } from '@/contexts/AuthContext'
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export function OnboardingChecker() {
-  const { isAuthenticated, loading } = useAuth()
+  const { data: session, status } = useSession()
   const [open, setOpen] = useState(false)
+
+  const isAuthenticated = status === 'authenticated'
+  const isLoading = status === 'loading'
 
   const { data: onboardingStatus } = useQuery<{ onboarding_completed: boolean }>({
     queryKey: ['onboardingStatus'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/settings/onboarding-status`)
+      const token = (session as any)?.accessToken
+      const { data } = await axios.get(`${API_BASE_URL}/settings/onboarding-status`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
       return data
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!session,
+    retry: 1,
   })
 
   useEffect(() => {
-    if (!loading && isAuthenticated && onboardingStatus && !onboardingStatus.onboarding_completed) {
+    if (!isLoading && isAuthenticated && onboardingStatus && !onboardingStatus.onboarding_completed) {
       const hasSeenOnboarding = localStorage.getItem('onboarding_shown')
       if (!hasSeenOnboarding) {
         setOpen(true)
         localStorage.setItem('onboarding_shown', 'true')
       }
     }
-  }, [loading, isAuthenticated, onboardingStatus])
+  }, [isLoading, isAuthenticated, onboardingStatus])
 
-  if (!isAuthenticated || loading || !onboardingStatus) {
+  if (!isAuthenticated || isLoading || !onboardingStatus) {
     return null
   }
 

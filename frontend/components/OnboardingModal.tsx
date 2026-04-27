@@ -15,10 +15,8 @@ import {
   FormControlLabel,
   FormControl,
 } from '@mui/material'
-import axios from 'axios'
 import { useTranslation } from '@/utils/i18n'
-
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+import api from '@/utils/api'
 
 interface OnboardingModalProps {
   open: boolean
@@ -39,16 +37,14 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
     setActiveStep((prev) => prev - 1)
   }
 
-  const handleComplete = async () => {
-    try {
-      await axios.post(`${API_BASE_URL}/settings/onboarding-complete`)
-      handleNext()
-    } catch (error) {
-      console.error('Error completing onboarding:', error)
+  const handleCloseModal = async () => {
+    if (activeStep === 2 && salary) {
+      try {
+        await api.post('/settings', { salary: parseFloat(salary) })
+      } catch (error) {
+        console.error('Error saving salary:', error)
+      }
     }
-  }
-
-  const handleClose = () => {
     setActiveStep(0)
     setGoal('')
     setSalary('')
@@ -60,7 +56,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={handleCloseModal}
       maxWidth="sm"
       fullWidth
       PaperProps={{
@@ -71,7 +67,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
       }}
     >
       <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-        <Typography variant="h5" fontWeight={700}>
+        <Typography variant="h5" component="div" fontWeight={700}>
           {activeStep === 0 && (isSpanish ? '¡Bienvenido! Bienvenido a Daily Finance' : 'Welcome to Daily Finance!')}
           {activeStep === 1 && (isSpanish ? '¿Cuál es tu objetivo?' : 'What is your goal?')}
           {activeStep === 2 && (isSpanish ? 'Ingresa tu salario mensual' : 'Enter your monthly salary')}
@@ -82,7 +78,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
       <DialogContent sx={{ minHeight: 300 }}>
         {activeStep === 0 && (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="h1" sx={{ fontSize: '4rem', mb: 2 }}>
+            <Typography variant="h2" sx={{ fontSize: '4rem', mb: 2 }}>
               💰
             </Typography>
             <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary' }}>
@@ -158,7 +154,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
 
         {activeStep === 3 && (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="h1" sx={{ fontSize: '4rem', mb: 2 }}>
+            <Typography variant="h2" sx={{ fontSize: '4rem', mb: 2 }}>
               ✅
             </Typography>
             <Typography variant="h6" sx={{ mb: 2 }}>
@@ -176,9 +172,9 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        {activeStep < 3 && (
+        {activeStep < 3 ? (
           <>
-            <Button onClick={handleClose} variant="outlined">
+            <Button onClick={handleCloseModal} variant="outlined">
               {isSpanish ? 'Omitir' : 'Skip'}
             </Button>
             <Box sx={{ flex: 1 }} />
@@ -188,18 +184,15 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
               </Button>
             )}
             <Button
-              onClick={activeStep === 2 ? handleComplete : handleNext}
+              onClick={handleNext}
               variant="contained"
               disabled={activeStep === 1 && !goal}
             >
-              {activeStep === 2
-                ? (isSpanish ? 'Finalizar' : 'Finish')
-                : (isSpanish ? 'Continuar' : 'Continue')}
+              {isSpanish ? 'Continuar' : 'Continue'}
             </Button>
           </>
-        )}
-        {activeStep === 3 && (
-          <Button onClick={handleClose} variant="contained" fullWidth>
+        ) : (
+          <Button onClick={handleCloseModal} variant="contained" fullWidth>
             {isSpanish ? 'Empezar' : 'Get Started'}
           </Button>
         )}

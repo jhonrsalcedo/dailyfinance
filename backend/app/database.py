@@ -15,6 +15,8 @@ class User(SQLModel, table=True):
     password_hash: str
     username: Optional[str] = Field(default="Usuario", max_length=100)
     created_at: Optional[str] = Field(default=None)
+    reset_code: Optional[str] = Field(default=None, max_length=6)
+    reset_code_expires: Optional[str] = Field(default=None)
 
 class Category(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

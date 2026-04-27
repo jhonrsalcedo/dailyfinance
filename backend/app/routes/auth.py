@@ -10,7 +10,8 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
-from app.database import engine, User, UserSettings
+from app.config import engine, get_db_session
+from app.database import User, UserSettings
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
@@ -23,7 +24,7 @@ ACCESS_TOKEN_EXPIRE_DAYS = 7
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
 def get_db():
-    with Session(engine) as session:
+    with get_db_session() as session:
         yield session
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -62,6 +63,22 @@ def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+def get_current_user_optional(
+    token: str | None = Depends(oauth2_scheme),
+    session: Session = Depends(get_db)
+) -> User | None:
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            return None
+        user = session.exec(select(User).where(User.email == email)).first()
+        return user
+    except JWTError:
+        return None
 
 class UserCreate(BaseModel):
     email: str = Field(min_length=1)
@@ -151,3 +168,61 @@ def get_me(current_user: User = Depends(get_current_user)):
 @router.post("/logout")
 def logout():
     return {"message": "Sesión cerrada"}
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    code: str
+    new_password: str
+
+@router.post("/forgot-password")
+def forgot_password(request: ForgotPasswordRequest, session: Session = Depends(get_db)):
+    import random
+    
+    user = session.exec(select(User).where(User.email == request.email.lower())).first()
+    if not user:
+        return {"message": "Si el email existe, recibirás un código de recuperación"}
+    
+    code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+    user.reset_code = code
+    user.reset_code_expires = (datetime.now() + timedelta(minutes=15)).isoformat()
+    session.commit()
+    
+    print(f"\n===== CÓDIGO DE RECUPERACIÓN =====")
+    print(f"Email: {user.email}")
+    print(f"Código: {code}")
+    print(f"Expira en 15 minutos")
+    print(f"==============================\n")
+    
+    return {"message": "Si el email existe, recibirás un código de recuperación"}
+
+@router.post("/reset-password")
+def reset_password(request: ResetPasswordRequest, session: Session = Depends(get_db)):
+    user = session.exec(select(User).where(User.email == request.email.lower())).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Usuario no encontrado")
+    
+    if not user.reset_code or user.reset_code != request.code:
+        raise HTTPException(status_code=400, detail="Código inválido")
+    
+    if not user.reset_code_expires:
+        raise HTTPException(status_code=400, detail="Código expirado")
+    
+    try:
+        expires = datetime.fromisoformat(user.reset_code_expires)
+        if expires < datetime.now():
+            user.reset_code = None
+            user.reset_code_expires = None
+            session.commit()
+            raise HTTPException(status_code=400, detail="Código expirado")
+    except:
+        raise HTTPException(status_code=400, detail="Código inválido")
+    
+    user.password_hash = get_password_hash(request.new_password)
+    user.reset_code = None
+    user.reset_code_expires = None
+    session.commit()
+    
+    return {"message": "Password actualizado exitosamente"}

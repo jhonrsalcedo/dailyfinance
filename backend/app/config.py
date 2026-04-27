@@ -42,6 +42,10 @@ def create_engine_by_url(database_url: str) -> sqla_create_engine:
 DATABASE_URL = get_database_url()
 engine = create_engine_by_url(DATABASE_URL)
 
+def get_db_session():
+    from sqlmodel import Session
+    return Session(engine)
+
 def get_engine():
     return engine
 

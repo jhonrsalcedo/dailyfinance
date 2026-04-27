@@ -1,6 +1,7 @@
 'use client'
 
 import ThemeRegistry from '@/components/ThemeRegistry'
+import Providers from '@/components/Providers'
 
 export default function RootLayout({
   children,
@@ -10,7 +11,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <ThemeRegistry>{children}</ThemeRegistry>
+        <Providers>
+          <ThemeRegistry>{children}</ThemeRegistry>
+        </Providers>
       </body>
     </html>
   )

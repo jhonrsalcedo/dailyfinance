@@ -237,6 +237,74 @@ Los montos se muestran en Pesos Colombianos (COP):
 
 ---
 
+## Autenticación
+
+### Stack
+- **Proveedor**: NextAuth.js (Auth.js)
+- **Estrategia**: JWT con credentials
+- **Frontend**: React con SessionProvider
+
+### Estructura de Archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `app/api/auth/[...nextauth]/route.ts` | Handler de NextAuth |
+| `components/Providers.tsx` | SessionProvider + React Query |
+| `utils/api.ts` | Axios con interceptor JWT |
+| `types/next-auth.d.ts` | TypeScript types |
+
+### Componentes queusan Auth
+- `Sidebar.tsx` - `useSession()`
+- `TopBar.tsx` - `useSession()` + `signOut()`
+- `login/page.tsx` - `signIn()` de NextAuth
+- `Dashboard (page.tsx)` - `useSession()`
+- `UserProfile.tsx` - `api` (axios interceptor)
+- `OnboardingChecker.tsx` - `useSession()`
+
+### Flujo de Autenticación
+1. Usuario entra email/password en `/login`
+2. `signIn('credentials')` → NextAuth valida contra backend
+3. Backend retorna JWT → NextAuth guarda en cookie de sesión
+4. `session.accessToken` contiene el JWT para llamadas API
+5. `utils/api.ts` interceptor agrega `Bearer token`
+
+### Verificación de Auth
+```typescript
+const { status } = useSession()
+const isAuthenticated = status === 'authenticated'
+```
+
+### Llamadas API Autenticadas
+```typescript
+import api from '@/utils/api'
+const { data } = await api.get('/endpoint')
+```
+
+### Logout
+```typescript
+import { signOut } from 'next-auth/react'
+await signOut({ redirect: false })
+router.push('/')
+```
+
+### Variables de Entorno
+```bash
+NEXTAUTH_SECRET=your-secret-key-change-in-production
+NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
+
+### Códigos de Error
+| Código | Significado |
+|--------|-------------|
+| 401 | No autenticado / Token expirado |
+| 403 | Sin permisos |
+| 422 | Credenciales inválidas |
+
+### Modo Demo (Sin Auth)
+Los visitantes ven datos de ejemplo. Para habilitar features completas, hacer login.
+
+---
+
 ## Git Workflow
 
 ### Flujo de Commit

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
 import {
   Container,
   Typography,
@@ -38,8 +37,7 @@ import { UserSettings } from '@/models'
 import { UserProfile } from '@/components/UserProfile'
 import { IconPicker, getMUIcon } from '@/components/IconPicker'
 import { OnboardingModal } from '@/components/OnboardingModal'
-
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+import api from '@/utils/api'
 
 interface Category {
   id: number
@@ -133,7 +131,7 @@ export default function SettingsPage() {
   const { data: settings } = useQuery<UserSettings>({
     queryKey: ['settings'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/settings`)
+      const { data } = await api.get<UserSettings>('/settings')
       return data
     },
   })
@@ -141,7 +139,7 @@ export default function SettingsPage() {
   const { data: categoriesData } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/categories`)
+      const { data } = await api.get<Category[]>('/categories')
       return data
     },
   })
@@ -149,7 +147,7 @@ export default function SettingsPage() {
   const { data: methodsData } = useQuery<PaymentMethod[]>({
     queryKey: ['paymentMethods'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/payment-methods`)
+      const { data } = await api.get<PaymentMethod[]>('/payment-methods')
       return data
     },
   })
@@ -168,7 +166,7 @@ export default function SettingsPage() {
 
   const updateSalaryMutation = useMutation({
     mutationFn: async (newSalary: number) => {
-      await axios.post(`${API_BASE_URL}/settings`, { salary: newSalary })
+      await api.post('/settings', { salary: newSalary })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] })
@@ -184,10 +182,10 @@ export default function SettingsPage() {
 
   const handleCategorySave = async (category: Partial<Category>) => {
     if (category.id) {
-      const { data } = await axios.put(`${API_BASE_URL}/categories/${category.id}`, category)
+      const { data } = await api.put(`/categories/${category.id}`, category)
       setCategoryList(categoryList.map(c => c.id === category.id ? data : c))
     } else {
-      const { data } = await axios.post(`${API_BASE_URL}/categories`, category)
+      const { data } = await api.post('/categories', category)
       setCategoryList([...categoryList, data])
     }
     setCategoryDialog({ open: false, category: null })
@@ -202,7 +200,7 @@ export default function SettingsPage() {
       return
     }
     try {
-      await axios.delete(`${API_BASE_URL}/categories/${id}`)
+      await api.delete(`/categories/${id}`)
       setCategoryList(categoryList.filter(c => c.id !== id))
     } catch (error: unknown) {
       const err = error as { response?: { data?: { detail?: string } } }

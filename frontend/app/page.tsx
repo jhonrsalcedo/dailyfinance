@@ -1,7 +1,7 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
 import {
   Container,
   Typography,
@@ -26,9 +26,7 @@ import CategoryChart from '@/components/CategoryChart'
 import MonthlyTrend from '@/components/MonthlyTrend'
 import { formatCurrencyCOP } from '@/utils/currency'
 import { StatsResponse, UserSettings } from '@/models'
-import { authApi } from '@/utils/auth'
-
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+import api from '@/utils/api'
 
 const DEMO_STATS: StatsResponse = {
   total_expenses: 2850000,
@@ -53,12 +51,12 @@ const DEMO_SETTINGS = {
 }
 
 async function fetchStats(): Promise<StatsResponse> {
-  const { data } = await axios.get<StatsResponse>(`${API_BASE_URL}/transactions/stats`)
+  const { data } = await api.get<StatsResponse>('/transactions/stats')
   return data
 }
 
 async function fetchSettings(): Promise<UserSettings> {
-  const { data } = await axios.get<UserSettings>(`${API_BASE_URL}/settings`)
+  const { data } = await api.get<UserSettings>('/settings')
   return data
 }
 
@@ -124,7 +122,8 @@ function StatCard({ title, value, icon, color }: StatCardProps) {
 }
 
 export default function Dashboard() {
-  const isAuthenticated = authApi.isAuthenticated()
+  const { status } = useSession()
+  const isAuthenticated = status === 'authenticated'
 
   const { data: stats, isLoading: statsLoading } = useQuery<StatsResponse>({
     queryKey: ['financeStats'],

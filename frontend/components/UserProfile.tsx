@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
 import {
   Box,
   Typography,
@@ -19,8 +18,7 @@ import {
 } from '@mui/material'
 import { UserSettings, ProfileUpdate, CURRENCIES } from '@/models'
 import { Loading } from '@/components/Loading'
-
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+import api from '@/utils/api'
 
 interface UserProfileProps {
   onSave?: () => void
@@ -40,7 +38,7 @@ export function UserProfile({ onSave }: UserProfileProps) {
   const { data: settings, isLoading } = useQuery<UserSettings>({
     queryKey: ['userSettings'],
     queryFn: async () => {
-      const { data } = await axios.get<UserSettings>(`${API_BASE_URL}/settings/profile`)
+      const { data } = await api.get<UserSettings>('/settings/profile')
       return data
     },
   })
@@ -59,7 +57,7 @@ export function UserProfile({ onSave }: UserProfileProps) {
 
   const updateMutation = useMutation({
     mutationFn: async (update: ProfileUpdate) => {
-      const { data } = await axios.put<UserSettings>(`${API_BASE_URL}/settings/profile`, update)
+      const { data } = await api.put<UserSettings>('/settings/profile', update)
       return data
     },
     onSuccess: () => {

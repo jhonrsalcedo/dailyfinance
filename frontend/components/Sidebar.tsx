@@ -25,7 +25,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import SettingsIcon from '@mui/icons-material/Settings'
 import CloseIcon from '@mui/icons-material/Close'
 import LoginIcon from '@mui/icons-material/Login'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSession } from 'next-auth/react'
 import { useTranslation } from '@/utils/i18n'
 
 export const DRAWER_WIDTH = 260
@@ -54,8 +54,10 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const router = useRouter()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const { isAuthenticated } = useAuth()
+  const { status } = useSession()
   const { t, language } = useTranslation()
+
+  const isAuthenticated = status === 'authenticated'
 
   const getLabel = (labelKey: string): string => {
     if (language === 'en') {

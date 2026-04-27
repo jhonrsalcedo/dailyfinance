@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 import {
   Box,
   AppBar,
@@ -26,7 +27,7 @@ import LightModeIcon from '@mui/icons-material/LightMode'
 import LoginIcon from '@mui/icons-material/Login'
 import LanguageIcon from '@mui/icons-material/Language'
 import { DRAWER_WIDTH } from './Sidebar'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSession } from 'next-auth/react'
 import { useTranslation } from '@/utils/i18n'
 
 interface TopBarProps {
@@ -57,10 +58,13 @@ function getGreeting(): string {
 export function TopBar({ onMobileMenuClick, onThemeToggle, themeMode = 'light' }: TopBarProps) {
   const theme = useTheme()
   const router = useRouter()
-  const { isAuthenticated, user, logout } = useAuth()
+  const { data: session, status } = useSession()
   const { t, language, changeLanguage } = useTranslation()
   const [currentDate, setCurrentDate] = useState('')
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+
+  const isAuthenticated = status === 'authenticated'
+  const user = session?.user
 
   useEffect(() => {
     setCurrentDate(formatDate(new Date()))
@@ -83,9 +87,9 @@ export function TopBar({ onMobileMenuClick, onThemeToggle, themeMode = 'light' }
     router.push('/login')
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     handleMenuClose()
-    logout()
+    await signOut({ redirect: false })
     router.push('/')
   }
 
@@ -201,7 +205,7 @@ export function TopBar({ onMobileMenuClick, onThemeToggle, themeMode = 'light' }
                     fontWeight: 600,
                   }}
                 >
-                  {user?.username?.[0]?.toUpperCase() || 'U'}
+                  {user?.name?.[0]?.toUpperCase() || 'U'}
                 </Avatar>
               </IconButton>
 
@@ -224,7 +228,7 @@ export function TopBar({ onMobileMenuClick, onThemeToggle, themeMode = 'light' }
               >
                 <Box sx={{ px: 2, py: 1.5 }}>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {user?.username || 'Usuario'}
+                    {user?.name || 'Usuario'}
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                     {user?.email}

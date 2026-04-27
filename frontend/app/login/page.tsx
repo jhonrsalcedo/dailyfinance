@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import {
   Box,
   Card,
@@ -25,13 +26,14 @@ import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
-import { authApi } from '@/utils/auth'
+import axios from 'axios'
 import { registerSchema, PASSWORD_REQUIREMENTS } from '@/schemas/authSchema'
-import { useAuth } from '@/contexts/AuthContext'
+import api from '@/utils/api'
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -41,6 +43,10 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [resetCode, setResetCode] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [resetSuccess, setResetSuccess] = useState(false)
 
   const passwordValidation = useMemo(() => {
     return PASSWORD_REQUIREMENTS.map(req => ({
@@ -93,15 +99,70 @@ export default function LoginPage() {
 
     try {
       if (isLogin) {
-        await login(email, password)
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        })
+
+        if (result?.error) {
+          setError('Email o password incorrecto')
+          return
+        }
+
+        router.push('/')
       } else {
-        await authApi.register(email, password, username || undefined)
-        await login(email, password)
+        await api.post('/auth/register', { email, password, username: username || undefined })
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        })
+
+        if (result?.error) {
+          setError('Error al iniciar sesión después del registro')
+          return
+        }
+
+        router.push('/')
       }
-      router.push('/')
     } catch (err: unknown) {
       const e = err as { response?: { data?: { detail?: string } } }
       setError(e.response?.data?.detail || 'Error al iniciar sesión')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email })
+      setResetSuccess(true)
+    } catch {
+      setResetSuccess(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      await axios.post(`${API_BASE_URL}/auth/reset-password`, {
+        email,
+        code: resetCode,
+        new_password: newPassword,
+      })
+      setResetSuccess(false)
+      setShowForgotPassword(false)
+      setIsLogin(true)
+      setError('Password actualizado. Ya puedes iniciar sesión.')
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { detail?: string } } }
+      setError(e.response?.data?.detail || 'Error al resetear password')
     } finally {
       setLoading(false)
     }
@@ -243,6 +304,106 @@ export default function LoginPage() {
                 {loading ? <CircularProgress size={24} /> : isLogin ? 'Entrar' : 'Registrarse'}
               </Button>
             </form>
+
+            {showForgotPassword && !resetSuccess && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Recuperar Contraseña
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  Ingresa tu email para recibir un código de recuperación.
+                </Typography>
+                <TextField
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  sx={{ mb: 2 }}
+                />
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  disabled={loading || !email}
+                  onClick={handleForgotPassword}
+                  sx={{ mb: 2 }}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Enviar Código'}
+                </Button>
+                <Button
+                  variant="text"
+                  fullWidth
+                  size="small"
+                  onClick={() => {
+                    setShowForgotPassword(false)
+                    setResetCode('')
+                    setNewPassword('')
+                  }}
+                >
+                  Volver
+                </Button>
+              </Box>
+            )}
+
+            {resetSuccess && (
+              <Box sx={{ mt: 2 }}>
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  Código enviado. Revisa la consola del backend para ver el código.
+                </Alert>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  Ingresa el código y tu nuevo password:
+                </Typography>
+                <TextField
+                  label="Código"
+                  fullWidth
+                  value={resetCode}
+                  onChange={(e) => setResetCode(e.target.value)}
+                  required
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  label="Nuevo Password"
+                  type={showPassword ? 'text' : 'password'}
+                  fullWidth
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  sx={{ mb: 2 }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  disabled={loading || !resetCode || !newPassword}
+                  onClick={handleResetPassword}
+                  sx={{ mb: 2 }}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Actualizar Password'}
+                </Button>
+              </Box>
+            )}
+
+            {isLogin && !showForgotPassword && !resetSuccess && (
+              <Typography
+                variant="body2"
+                textAlign="center"
+                sx={{ mb: 1, color: 'text.secondary', cursor: 'pointer' }}
+                onClick={() => setShowForgotPassword(true)}
+              >
+                ¿Olvidaste tu contraseña?
+              </Typography>
+            )}
 
             <Divider sx={{ my: 2 }} />
 
