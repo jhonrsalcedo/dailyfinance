@@ -179,6 +179,7 @@ npx lint-staged     # Ejecutar todos los checks
 ### Configuración Agnóstica
 El proyecto usa abstracción de base de datos. Compatible con:
 - **SQLite** (desarrollo local)
+- **libSQL/Turso** (SQLite-compatible, gratuito 5GB)
 - **PostgreSQL** (Neon, Railway, Supabase)
 - **MySQL** (PlanetScale)
 
@@ -187,21 +188,55 @@ El proyecto usa abstracción de base de datos. Compatible con:
 # Desarrollo (SQLite por defecto)
 DATABASE_URL=sqlite:///db/dailyfinance.db
 
+# Turso (libSQL) - Gratis 5GB
+DATABASE_URL=libsql://<org>-<db>.turso.io
+TURSO_AUTH_TOKEN=eyJhbGciOi...
+
 # Producción (PostgreSQL)
 DATABASE_URL=postgresql://user:password@host:5432/dbname
 ```
 
+### Configuración Turso (libSQL)
+
+1. **Crear cuenta y base de datos**:
+```bash
+# Instalar CLI
+curl -sSfL https://get.tur.so/install.sh | bash
+
+# Login
+turso auth login
+
+# Crear base de datos
+turso db create dailyfinance
+
+# Obtener URL
+turso db show dailyfinance
+
+# Crear token
+turso db tokens create dailyfinance
+```
+
+2. **Configurar .env**:
+```bash
+DATABASE_URL=libsql://dailyfinance-<org>.turso.io
+TURSO_AUTH_TOKEN=<token>
+```
+
+3. **Instalación automática**:
+- `sqlalchemy-libsql` ya está en `requirements.txt`
+- Se instala automáticamente con `pip install -r requirements.txt`
+
 ### Proveedores Gratuitos Recomendados
 | Proveedor | Tier | Database | Link |
 |-----------|------|----------|------|
+| **Turso** | **5GB** | **libSQL** | **turso.tech** |
 | Neon | 500MB | PostgreSQL | neon.tech |
-| Turso | 9GB | libSQL | turso.tech |
 | Railway | 1GB | PostgreSQL | railway.app |
 | Supabase | 500MB | PostgreSQL | supabase.com |
 
 ### Estructura de Archivos
 - `db/dailyfinance.db` - SQLite local
-- `app/config.py` - Factory pattern para engines
+- `app/config.py` - Factory pattern para engines (soporta libsql://)
 - `.env.example` - Plantilla de variables
 
 ---
