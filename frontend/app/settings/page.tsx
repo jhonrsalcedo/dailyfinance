@@ -134,6 +134,8 @@ export default function SettingsPage() {
     message: '',
     severity: 'success',
   })
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [saveMessage, setSaveMessage] = useState('')
 
    const { data: settings } = useQuery<UserSettings>({
     queryKey: ['settings'],
@@ -176,12 +178,17 @@ export default function SettingsPage() {
     mutationFn: async (newSalary: number) => {
       await api.post('/settings', { salary: newSalary })
     },
-    onSuccess: () => {
+    onSuccess: (_, newSalary) => {
       queryClient.invalidateQueries({ queryKey: ['settings'] })
+      setSaveStatus('success')
+      setSaveMessage(`Salario de ${formatCurrencyCOP(newSalary as number)} guardado correctamente`)
       setSnackbar({ open: true, message: 'Salario guardado exitosamente', severity: 'success' })
+      setTimeout(() => setSaveStatus('idle'), 5000)
     },
     onError: (error: any) => {
+      setSaveStatus('error')
       const message = error?.response?.data?.detail || 'Error al guardar el salario'
+      setSaveMessage(`Error: ${message}`)
       setSnackbar({ open: true, message, severity: 'error' })
     },
   })
@@ -389,9 +396,18 @@ export default function SettingsPage() {
                     </Typography>
                   )}
                 </Box>
+                {saveStatus !== 'idle' && (
+                  <Alert 
+                    severity={saveStatus} 
+                    sx={{ mt: 2, alignItems: 'center' }}
+                    onClose={() => setSaveStatus('idle')}
+                  >
+                    {saveMessage}
+                  </Alert>
+                )}
                 {settings?.salary && (
                   <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2 }}>
-                    Último salary guardado: {formatCurrencyCOP(settings.salary)}
+                    Último salario guardado: {formatCurrencyCOP(settings.salary)}
                   </Typography>
                 )}
               </CardContent>
