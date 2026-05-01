@@ -23,6 +23,8 @@ import {
   Tab,
   alpha,
   useTheme,
+  Snackbar,
+  Alert,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
@@ -127,6 +129,11 @@ export default function SettingsPage() {
     open: false,
     category: null,
   })
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  })
 
   const { data: settings } = useQuery<UserSettings>({
     queryKey: ['settings'],
@@ -170,6 +177,11 @@ export default function SettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] })
+      setSnackbar({ open: true, message: 'Salario guardado exitosamente', severity: 'success' })
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.detail || 'Error al guardar el salario'
+      setSnackbar({ open: true, message, severity: 'error' })
     },
   })
 
@@ -405,6 +417,21 @@ export default function SettingsPage() {
         category={categoryDialog.category}
         onSave={handleCategorySave}
       />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   )
 }

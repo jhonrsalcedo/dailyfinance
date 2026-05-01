@@ -33,9 +33,27 @@ class ProfileUpdate(BaseModel):
 class SettingsUpdate(BaseModel):
     salary: float | None = None
 
-def get_or_create_settings() -> UserSettings:
-    session = get_db()
-    try:
+def get_or_create_settings(session: Session, current_user: User | None = None) -> UserSettings:
+    if current_user:
+        settings = session.exec(
+            select(UserSettings).where(UserSettings.user_id == current_user.id)
+        ).first()
+        
+        if not settings:
+            settings = UserSettings(
+                user_id=current_user.id,
+                username=current_user.username,
+                email=current_user.email,
+                currency="COP",
+                notifications_enabled=True,
+                salary=0,
+            )
+            session.add(settings)
+            session.commit()
+            session.refresh(settings)
+        
+        return settings
+    else:
         settings = session.exec(select(UserSettings).where(UserSettings.id == 1)).first()
         if not settings:
             settings = UserSettings(
@@ -48,25 +66,43 @@ def get_or_create_settings() -> UserSettings:
             session.commit()
             session.refresh(settings)
         return settings
-    finally:
-        session.close()
 
 @router.get("/", response_model=SettingsResponse)
-def get_settings():
+def get_settings(current_user: User | None = Depends(get_current_user_optional)):
     session = get_db()
     try:
-        settings = session.exec(select(UserSettings).where(UserSettings.id == 1)).first()
-        if not settings:
-            settings = UserSettings(
-                id=1,
-                username="Demo",
-                salary=0,
-                currency="COP",
-            )
-            session.add(settings)
-            session.commit()
-            session.refresh(settings)
-        return settings
+        if current_user:
+            settings = session.exec(
+                select(UserSettings).where(UserSettings.user_id == current_user.id)
+            ).first()
+            
+            if not settings:
+                settings = UserSettings(
+                    user_id=current_user.id,
+                    username=current_user.username,
+                    email=current_user.email,
+                    currency="COP",
+                    notifications_enabled=True,
+                    salary=0,
+                )
+                session.add(settings)
+                session.commit()
+                session.refresh(settings)
+            
+            return settings
+        else:
+            settings = session.exec(select(UserSettings).where(UserSettings.id == 1)).first()
+            if not settings:
+                settings = UserSettings(
+                    id=1,
+                    username="Demo",
+                    salary=0,
+                    currency="COP",
+                )
+                session.add(settings)
+                session.commit()
+                session.refresh(settings)
+            return settings
     finally:
         session.close()
 
