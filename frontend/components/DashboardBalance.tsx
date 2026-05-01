@@ -206,6 +206,8 @@ export default function DashboardBalance() {
       const { data } = await axios.get(`${API_BASE_URL}/settings`)
       return data
     },
+    // Only fetch if we're likely authenticated (avoid 401 on mount)
+    retry: false,
   })
 
   const { data: stats } = useQuery<StatsResponse>({
