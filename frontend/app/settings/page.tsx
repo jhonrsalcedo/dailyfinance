@@ -135,7 +135,7 @@ export default function SettingsPage() {
     severity: 'success',
   })
 
-  const { data: settings, isLoading: settingsLoading } = useQuery<UserSettings>({
+   const { data: settings } = useQuery<UserSettings>({
     queryKey: ['settings'],
     queryFn: async () => {
       const { data } = await api.get<UserSettings>('/settings')

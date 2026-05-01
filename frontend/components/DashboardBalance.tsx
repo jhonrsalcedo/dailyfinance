@@ -17,8 +17,6 @@ import WarningIcon from '@mui/icons-material/Warning'
 import { formatCurrencyCOP } from '@/utils/currency'
 import { UserSettings, StatsResponse } from '@/models'
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
-
 interface BalanceCardProps {
   salary: number | null
   totalExpenses: number
