@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
+import api from '@/utils/api'
 import {
   Box,
   Typography,
@@ -203,17 +203,16 @@ export default function DashboardBalance() {
   const { data: settings } = useQuery<UserSettings>({
     queryKey: ['settings'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/settings`)
+      const { data } = await api.get<UserSettings>('/settings')
       return data
     },
-    // Only fetch if we're likely authenticated (avoid 401 on mount)
     retry: false,
   })
 
   const { data: stats } = useQuery<StatsResponse>({
     queryKey: ['financeStats'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/transactions/stats`)
+      const { data } = await api.get<StatsResponse>('/transactions/stats')
       return data
     },
   })

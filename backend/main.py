@@ -43,11 +43,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
-    logger.error(f"Value error: {str(exc)}")
+    logger.error(f"Value error: {exc}")
     return JSONResponse(
         status_code=400,
         content={
-            "detail": str(exc),
+            "detail": str(exc) if str(exc) else "Error de validación",
         },
     )
 

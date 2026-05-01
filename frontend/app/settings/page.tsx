@@ -361,7 +361,7 @@ export default function SettingsPage() {
                 <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>
                   Salario Mensual
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                   <TextField
                     label="Salario"
                     type="number"
@@ -380,6 +380,14 @@ export default function SettingsPage() {
                   >
                     Guardar
                   </Button>
+                  {updateSalaryMutation.isSuccess && (
+                    <Typography
+                      color="success.main"
+                      sx={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}
+                    >
+                      ✅ Guardado
+                    </Typography>
+                  )}
                 </Box>
                 {settings?.salary && (
                   <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2 }}>

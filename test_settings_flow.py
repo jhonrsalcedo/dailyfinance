@@ -9,19 +9,22 @@ Test script to verify the complete settings flow:
 """
 import requests
 import json
+import time
 
 BASE_URL = "http://localhost:8000/api/v1"
 
 def test_settings_flow():
     print("Testing complete settings flow...\n")
+    timestamp = str(int(time.time()))
+    test_email = f"settings_test_{timestamp}@example.com"
     
     # Step 1: Create a test user
     print("1. Creating test user...")
     register_response = requests.post(
         f"{BASE_URL}/auth/register",
         json={
-            "email": "settings_test@example.com",
-            "password": "testpassword123",
+            "email": test_email,
+            "password": "TestPassword123",  # Has uppercase, lowercase, numbers
             "username": "SettingsTestUser"
         }
     )
@@ -39,7 +42,7 @@ def test_settings_flow():
     print("\n2. Logging in...")
     login_response = requests.post(
         f"{BASE_URL}/auth/login",
-        json={"email": "settings_test@example.com", "password": "testpassword123"}
+        json={"email": test_email, "password": "TestPassword123"}
     )
     
     if login_response.status_code != 200:
