@@ -5,6 +5,11 @@ Aplicación de finanzas personales para control de gastos diarios con categoría
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-005571)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6)
+![React](https://img.shields.io/badge/React-18-61DAFB)
+![Python](https://img.shields.io/badge/Python-3.13-3776AB)
+![MUI](https://img.shields.io/badge/MUI-5-0081CB)
+![Vitest](https://img.shields.io/badge/Vitest-4-6c5ce7)
+![Playwright](https://img.shields.io/badge/Playwright-1-2e2e2e)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## 📋 Descripción
@@ -125,6 +130,23 @@ dailyfinance/
 ├── docker/        # Docker config
 └── db/           # Base de datos
 ```
+
+## 📊 Documentación de Arquitectura
+
+Consulta el documento completo de arquitectura para ver diagramas detallados de:
+
+- 🏗️ Arquitectura general del sistema
+- 🔐 Flujo de autenticación
+- 💳 Flujo de transacciones
+- 🛠️ Stack tecnológico completo
+- 🗄️ Esquema de base de datos
+- 📁 Estructura del proyecto
+- 🚀 Pipeline de deployment
+- 📝 Resumen de endpoints
+
+**[Ver ARCHITECTURE.md](./ARCHITECTURE.md)**
+
+---
 
 ## 📄 Licencia
 
