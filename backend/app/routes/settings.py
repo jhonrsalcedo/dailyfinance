@@ -70,6 +70,7 @@ def get_or_create_settings(session: Session, current_user: User | None = None) -
             session.refresh(settings)
         return settings
 
+@router.get("", response_model=SettingsResponse)
 @router.get("/", response_model=SettingsResponse)
 def get_settings(
     session: Session = Depends(get_db),

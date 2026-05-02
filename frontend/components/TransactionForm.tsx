@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
+import api from '@/utils/api'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -24,27 +24,67 @@ import {
   useTheme,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import SaveIcon from '@mui/icons-material/Save'
+import CancelIcon from '@mui/icons-material/Cancel'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import PaymentsIcon from '@mui/icons-material/Payments'
 import { transactionSchema } from '@/schemas/transactionSchema'
-import { TransactionFormData } from '@/models'
+import { TransactionFormData, Transaction } from '@/models'
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+const COLOMBIAN_BANKS = [
+  'Nequi',
+  'Daviplata',
+  'Movii',
+  'Dale!',
+  'RappiPay',
+  'Nu',
+  'Bancolombia',
+  'Davivienda',
+  'Banco de Bogotá',
+  'BBVA Colombia',
+  'Banco AV Villas',
+  'Banco de Occidente',
+  'Banco Popular',
+  'Banco Caja Social',
+  'Itaú Colombia',
+  'Banco Serfinanza',
+  'Confiar',
+  'Coopcentral',
+]
 
-export default function TransactionForm() {
+interface TransactionFormProps {
+  transactionToEdit?: Transaction | null
+  onSuccess?: () => void
+  onCancelEdit?: () => void
+  isDialog?: boolean
+}
+
+
+
+export default function TransactionForm({ 
+  transactionToEdit, 
+  onSuccess, 
+  onCancelEdit,
+  isDialog = false 
+}: TransactionFormProps) {
   const theme = useTheme()
   const queryClient = useQueryClient()
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState<boolean>(isDialog || true)
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [selectedBank, setSelectedBank] = useState('')
+
+  const isEditing = !!transactionToEdit
+
+  const [methodIdValue, setMethodIdValue] = useState<number | undefined>()
 
   const { data: categories = [] } = useQuery<Array<{id: number, name: string, icon?: string, color?: string}>>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/categories`)
+      const { data } = await api.get('/categories')
       return data
     },
   })
@@ -52,29 +92,48 @@ export default function TransactionForm() {
   const { data: paymentMethods = [] } = useQuery<Array<{id: number, name: string, type: string}>>({
     queryKey: ['paymentMethods'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/payment-methods`)
+      const { data } = await api.get('/payment-methods')
       return data
     },
   })
 
+  const transferMethod = paymentMethods.find(m => m.type === 'transfer')
+  const isTransferSelected = transferMethod && methodIdValue === transferMethod.id
+
   const mutation = useMutation({
-    mutationFn: async (newTransaction: TransactionFormData) => {
-      const { data } = await axios.post(
-        `${API_BASE_URL}/transactions`,
-        newTransaction
-      )
-      return data
+    mutationFn: async (transactionData: TransactionFormData) => {
+      if (isEditing && transactionToEdit) {
+        const { data } = await api.put(
+          `/transactions/${transactionToEdit.id}`,
+          transactionData
+        )
+        return data
+      } else {
+        const { data } = await api.post(
+          '/transactions',
+          transactionData
+        )
+        return data
+      }
     },
     onSuccess: () => {
       setSubmitting(false)
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
       queryClient.invalidateQueries({ queryKey: ['financeStats'] })
       queryClient.invalidateQueries({ queryKey: ['recentTransactions'] })
-      setSuccessMessage('Transacción registrada')
+      
+      if (isEditing) {
+        setSuccessMessage('Transacción actualizada')
+        onSuccess?.()
+        onCancelEdit?.()
+      } else {
+        setSuccessMessage('Transacción registrada')
+        setTimeout(() => {
+          reset()
+          setSuccessMessage('')
+        }, 4000)
+      }
       setErrorMessage('')
-      setTimeout(() => {
-        reset()
-        setSuccessMessage('')
-      }, 4000)
     },
     onError: (error: unknown) => {
       setSubmitting(false)
@@ -105,9 +164,34 @@ export default function TransactionForm() {
     },
   })
 
+  useEffect(() => {
+    if (transactionToEdit) {
+      reset({
+        amount: transactionToEdit.amount,
+        category_id: transactionToEdit.category_id ?? undefined,
+        method_id: transactionToEdit.method_id ?? undefined,
+        description: transactionToEdit.description || '',
+        date: transactionToEdit.date,
+      })
+      setMethodIdValue(transactionToEdit.method_id ?? undefined)
+      if (transactionToEdit.description) {
+        const bankMatch = transactionToEdit.description.match(/Transferencia: (\w+)/)
+        if (bankMatch) {
+          setSelectedBank(bankMatch[1])
+        }
+      }
+    }
+  }, [transactionToEdit, reset])
+
   const onSubmit = (formData: TransactionFormData) => {
     setSubmitting(true)
-    mutation.mutate(formData)
+    const dataToSubmit = { ...formData }
+    if (isTransferSelected && selectedBank) {
+      dataToSubmit.description = dataToSubmit.description
+        ? `${dataToSubmit.description} - Transferencia: ${selectedBank}`
+        : `Transferencia: ${selectedBank}`
+    }
+    mutation.mutate(dataToSubmit)
   }
 
   const isLoading = mutation.isPending || submitting
@@ -248,7 +332,14 @@ export default function TransactionForm() {
                       error={!!errors.method_id}
                       helperText={errors.method_id?.message?.toString()}
                       value={field.value ?? ''}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      onChange={(e) => {
+                        const val = Number(e.target.value)
+                        field.onChange(val)
+                        setMethodIdValue(val)
+                        if (val !== transferMethod?.id) {
+                          setSelectedBank('')
+                        }
+                      }}
                     >
                       <MenuItem value="" disabled>
                         --
@@ -262,6 +353,29 @@ export default function TransactionForm() {
                   )}
                 />
               </Grid>
+
+              {isTransferSelected && (
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField
+                    select
+                    label="Banco"
+                    fullWidth
+                    size="medium"
+                    disabled={isLoading}
+                    value={selectedBank}
+                    onChange={(e) => setSelectedBank(e.target.value)}
+                  >
+                    <MenuItem value="" disabled>
+                      --
+                    </MenuItem>
+                    {COLOMBIAN_BANKS.map((bank) => (
+                      <MenuItem key={bank} value={bank}>
+                        {bank}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+              )}
 
               <Grid item xs={12} sm={6} md={3}>
                 <Controller
@@ -302,7 +416,7 @@ export default function TransactionForm() {
                 />
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={isEditing ? 6 : 4}>
                 <Button
                   type="submit"
                   variant="contained"
@@ -315,12 +429,27 @@ export default function TransactionForm() {
                     <CircularProgress size={20} />
                   ) : (
                     <>
-                      <AddIcon sx={{ mr: 1 }} />
-                      Agregar
+                      {isEditing ? <SaveIcon sx={{ mr: 1 }} /> : <AddIcon sx={{ mr: 1 }} />}
+                      {isEditing ? 'Actualizar' : 'Agregar'}
                     </>
                   )}
                 </Button>
               </Grid>
+              {isEditing && onCancelEdit && (
+                <Grid item xs={12} md={6}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    size="medium"
+                    onClick={onCancelEdit}
+                    disabled={submitting}
+                    sx={{ minHeight: 47 }}
+                    startIcon={<CancelIcon />}
+                  >
+                    Cancelar
+                  </Button>
+                </Grid>
+              )}
             </Grid>
           </form>
         </CardContent>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
+import api from '@/utils/api'
 import {
   Container,
   Typography,
@@ -28,9 +28,11 @@ import {
   Line,
   Legend,
 } from 'recharts'
-import { formatCurrencyCOP } from '@/utils/currency'
+import { formatCurrency } from '@/utils/currency'
+import { UserSettings } from '@/models'
+import { ReportsSkeleton } from '@/components/skeletons'
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+
 
 const COLORS = ['#1e40af', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#64748b']
 
@@ -38,9 +40,10 @@ interface CustomTooltipProps {
   active?: boolean
   payload?: Array<{ name: string; value: number; color: string }>
   label?: string
+  currency?: string
 }
 
-function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, label, currency }: CustomTooltipProps & { currency?: string }) {
   if (active && payload && payload.length) {
     return (
       <Box
@@ -58,7 +61,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
         </Typography>
         {payload.map((item, index) => (
           <Typography key={index} variant="body2" sx={{ color: item.color }}>
-            {item.name}: {formatCurrencyCOP(item.value)}
+            {item.name}: {formatCurrency(item.value, currency || 'COP')}
           </Typography>
         ))}
       </Box>
@@ -74,7 +77,7 @@ export default function ReportsPage() {
   const { data: monthlyStats } = useQuery<{ month: string; income: number; expenses: number; balance: number }>({
     queryKey: ['monthlyStats', selectedMonth],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/stats/monthly?month=${selectedMonth}`)
+      const { data } = await api.get(`/stats/monthly?month=${selectedMonth}`)
       return data
     },
   })
@@ -82,18 +85,28 @@ export default function ReportsPage() {
   const { data: categoryStats = [] } = useQuery<{ category_id: number; category_name: string; total: number }[]>({
     queryKey: ['categoryStats', selectedMonth],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/stats/by-category?month=${selectedMonth}`)
+      const { data } = await api.get(`/stats/by-category?month=${selectedMonth}`)
       return data
     },
   })
 
-  const { data: historyStats = [] } = useQuery<{ month: string; income: number; expenses: number }[]>({
+  const { data: historyStats = [], isLoading: historyLoading } = useQuery<{ month: string; income: number; expenses: number }[]>({
     queryKey: ['historyStats'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/stats/history?months=6`)
+      const { data } = await api.get('/stats/history?months=6')
       return data
     },
   })
+
+  const { data: settings, isLoading: settingsLoading } = useQuery<UserSettings>({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const { data } = await api.get('/settings')
+      return data
+    },
+  })
+
+  const currency = settings?.currency || 'COP'
 
   const totalIncome = monthlyStats?.income || 0
   const totalExpenses = monthlyStats?.expenses || 0
@@ -111,6 +124,10 @@ export default function ReportsPage() {
     expenses: m.expenses,
     balance: m.income - m.expenses
   }))
+
+  if (historyLoading || settingsLoading) {
+    return <ReportsSkeleton />
+  }
 
   return (
     <Container maxWidth="xl">
@@ -141,9 +158,9 @@ export default function ReportsPage() {
               <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                 Ingresos Mes
               </Typography>
-              <Typography variant="h5" sx={{ color: 'success.main', fontWeight: 700 }}>
-                {formatCurrencyCOP(totalIncome)}
-              </Typography>
+                <Typography variant="h5" sx={{ color: 'success.main', fontWeight: 700 }}>
+                 {formatCurrency(totalIncome, currency)}
+               </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -153,9 +170,9 @@ export default function ReportsPage() {
               <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                 Gastos Mes
               </Typography>
-              <Typography variant="h5" sx={{ color: 'error.main', fontWeight: 700 }}>
-                {formatCurrencyCOP(totalExpenses)}
-              </Typography>
+                <Typography variant="h5" sx={{ color: 'error.main', fontWeight: 700 }}>
+                 {formatCurrency(totalExpenses, currency)}
+               </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -165,9 +182,9 @@ export default function ReportsPage() {
               <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                 Balance Mes
               </Typography>
-              <Typography variant="h5" sx={{ color: totalIncome - totalExpenses >= 0 ? 'success.main' : 'error.main', fontWeight: 700 }}>
-                {formatCurrencyCOP(totalIncome - totalExpenses)}
-              </Typography>
+                <Typography variant="h5" sx={{ color: totalIncome - totalExpenses >= 0 ? 'success.main' : 'error.main', fontWeight: 700 }}>
+                 {formatCurrency(totalIncome - totalExpenses, currency)}
+               </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -177,9 +194,9 @@ export default function ReportsPage() {
               <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                 Promedio Mensual
               </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                {formatCurrencyCOP(avgMonthly)}
-              </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                 {formatCurrency(avgMonthly, currency)}
+               </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -197,7 +214,7 @@ export default function ReportsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                   <YAxis tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} tick={{ fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip currency={currency} />} />
                   <Legend />
                   <Bar dataKey="income" name="Ingresos" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
                   <Bar dataKey="expenses" name="Gastos" fill={theme.palette.error.main} radius={[4, 4, 0, 0]} />
@@ -236,7 +253,7 @@ export default function ReportsPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => formatCurrencyCOP(value)} />
+                     <Tooltip formatter={(value: number) => formatCurrency(value, currency)} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
@@ -255,7 +272,7 @@ export default function ReportsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                   <YAxis tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} tick={{ fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip currency={currency} />} />
                   <Legend />
                   <Line 
                     type="monotone" 

@@ -14,15 +14,16 @@ import {
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import SavingsIcon from '@mui/icons-material/Savings'
 import WarningIcon from '@mui/icons-material/Warning'
-import { formatCurrencyCOP } from '@/utils/currency'
+import { formatCurrency } from '@/utils/currency'
 import { UserSettings, StatsResponse } from '@/models'
 
 interface BalanceCardProps {
   salary: number | null
   totalExpenses: number
+  currency?: string
 }
 
-function BalanceCard({ salary, totalExpenses }: BalanceCardProps) {
+function BalanceCard({ salary, totalExpenses, currency }: BalanceCardProps) {
   const theme = useTheme()
 
   if (!salary) {
@@ -127,17 +128,17 @@ function BalanceCard({ salary, totalExpenses }: BalanceCardProps) {
             color: isOverBudget ? 'error.main' : 'text.primary',
             letterSpacing: '-0.02em',
           }}
-        >
-          {formatCurrencyCOP(remaining)}
+          >
+          {formatCurrency(remaining, currency)}
         </Typography>
-
+        
         <Box sx={{ mt: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              Gastado: {formatCurrencyCOP(totalExpenses)}
+              Gastado: {formatCurrency(totalExpenses, currency)}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              Salario: {formatCurrencyCOP(salary)}
+              Salario: {formatCurrency(salary, currency)}
             </Typography>
           </Box>
           <LinearProgress
@@ -187,9 +188,9 @@ function BalanceCard({ salary, totalExpenses }: BalanceCardProps) {
             }}
           >
             <TrendingDownIcon sx={{ fontSize: 16, color: 'error.main' }} />
-            <Typography variant="caption" sx={{ color: 'error.main' }}>
-              Has excedido tu salary por {formatCurrencyCOP(Math.abs(remaining))}
-            </Typography>
+             <Typography variant="caption" sx={{ color: 'error.main' }}>
+               Has excedido tu salary por {formatCurrency(Math.abs(remaining), currency)}
+             </Typography>
           </Box>
         )}
       </CardContent>
@@ -219,6 +220,7 @@ export default function DashboardBalance() {
     <BalanceCard
       salary={settings?.salary || null}
       totalExpenses={stats?.total_expenses || 0}
+      currency={settings?.currency || 'COP'}
     />
   )
 }

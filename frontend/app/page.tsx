@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   Box,
-  CircularProgress,
   Button,
   Chip,
   alpha,
@@ -24,8 +23,9 @@ import DashboardBalance from '@/components/DashboardBalance'
 import RecentTransactions from '@/components/RecentTransactions'
 import CategoryChart from '@/components/CategoryChart'
 import MonthlyTrend from '@/components/MonthlyTrend'
-import { formatCurrencyCOP } from '@/utils/currency'
+import { formatCurrency } from '@/utils/currency'
 import { StatsResponse, UserSettings } from '@/models'
+import { DashboardSkeleton } from '@/components/skeletons'
 import api from '@/utils/api'
 
 const DEMO_STATS: StatsResponse = {
@@ -139,16 +139,10 @@ export default function Dashboard() {
 
   const displayStats = isAuthenticated ? stats : DEMO_STATS
   const displaySettings = isAuthenticated ? settings : DEMO_SETTINGS
+  const currency = displaySettings?.currency || 'COP'
 
   if (statsLoading && isAuthenticated) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <CircularProgress size={48} sx={{ mb: 2 }} />
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>Cargando...</Typography>
-        </Box>
-      </Box>
-    )
+    return <DashboardSkeleton />
   }
 
   if (!displayStats) return null
@@ -197,31 +191,31 @@ export default function Dashboard() {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
           {isAuthenticated ? <DashboardBalance /> : (
-            <StatCard
-              title="Salario"
-              value={formatCurrencyCOP(DEMO_STATS.total_expenses * 2)}
-              icon={<AccountBalanceWalletIcon sx={{ color: 'primary.main', fontSize: 20 }} />}
-              color="primary"
-            />
-          )}
+             <StatCard
+               title="Salario"
+               value={formatCurrency(DEMO_STATS.total_expenses * 2, DEMO_SETTINGS.currency)}
+               icon={<AccountBalanceWalletIcon sx={{ color: 'primary.main', fontSize: 20 }} />}
+               color="primary"
+             />
+           )}
         </Grid>
         <Grid item xs={12} md={8}>
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <StatCard
-                title="Gastos del Mes"
-                value={formatCurrencyCOP(displayStats.total_expenses)}
-                icon={<TrendingDownIcon sx={{ color: 'error.main', fontSize: 20 }} />}
-                color="error"
-              />
+                 title="Gastos del Mes"
+                 value={formatCurrency(displayStats.total_expenses, currency)}
+                 icon={<TrendingDownIcon sx={{ color: 'error.main', fontSize: 20 }} />}
+                 color="error"
+               />
             </Grid>
             <Grid item xs={6}>
               <StatCard
-                title="Balance"
-                value={formatCurrencyCOP(balance)}
-                icon={<SavingsIcon sx={{ color: balance >= 0 ? 'success.main' : 'error.main', fontSize: 20 }} />}
-                color={balance >= 0 ? 'success' : 'error'}
-              />
+                 title="Balance"
+                 value={formatCurrency(balance, currency)}
+                 icon={<SavingsIcon sx={{ color: balance >= 0 ? 'success.main' : 'error.main', fontSize: 20 }} />}
+                 color={balance >= 0 ? 'success' : 'error'}
+               />
             </Grid>
           </Grid>
         </Grid>

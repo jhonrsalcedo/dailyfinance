@@ -19,6 +19,7 @@ DEFAULT_PAYMENT_METHODS = [
     {"name": "Efectivo", "type": "cash"},
     {"name": "Tarjeta Débito", "type": "debit"},
     {"name": "Tarjeta Crédito", "type": "credit"},
+    {"name": "Transferencias", "type": "transfer"},
 ]
 
 def seed_database():

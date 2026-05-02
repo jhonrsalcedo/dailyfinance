@@ -34,11 +34,12 @@ import PersonIcon from '@mui/icons-material/Person'
 import CategoryIcon from '@mui/icons-material/Category'
 import PaymentIcon from '@mui/icons-material/Payment'
 import HomeTourIcon from '@mui/icons-material/HomeWork'
-import { formatCurrencyCOP } from '@/utils/currency'
+import { formatCurrency } from '@/utils/currency'
 import { UserSettings } from '@/models'
 import { UserProfile } from '@/components/UserProfile'
 import { IconPicker, getMUIcon } from '@/components/IconPicker'
 import { OnboardingModal } from '@/components/OnboardingModal'
+import { SettingsSkeleton } from '@/components/skeletons'
 import api from '@/utils/api'
 
 interface Category {
@@ -137,16 +138,15 @@ export default function SettingsPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [saveMessage, setSaveMessage] = useState('')
 
-   const { data: settings } = useQuery<UserSettings>({
+   const { data: settings, isLoading: settingsLoading } = useQuery<UserSettings>({
     queryKey: ['settings'],
     queryFn: async () => {
       const { data } = await api.get<UserSettings>('/settings')
       return data
     },
-    // Only run query if we have a session (api interceptor will add token)
   })
 
-  const { data: categoriesData } = useQuery<Category[]>({
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
       const { data } = await api.get<Category[]>('/categories')
@@ -154,7 +154,7 @@ export default function SettingsPage() {
     },
   })
 
-  const { data: methodsData } = useQuery<PaymentMethod[]>({
+  const { data: methodsData, isLoading: methodsLoading } = useQuery<PaymentMethod[]>({
     queryKey: ['paymentMethods'],
     queryFn: async () => {
       const { data } = await api.get<PaymentMethod[]>('/payment-methods')
@@ -181,7 +181,7 @@ export default function SettingsPage() {
     onSuccess: (_, newSalary) => {
       queryClient.invalidateQueries({ queryKey: ['settings'] })
       setSaveStatus('success')
-      setSaveMessage(`Salario de ${formatCurrencyCOP(newSalary as number)} guardado correctamente`)
+       setSaveMessage(`Salario de ${formatCurrency(newSalary as number, settings?.currency || 'COP')} guardado correctamente`)
       setSnackbar({ open: true, message: 'Salario guardado exitosamente', severity: 'success' })
       setTimeout(() => setSaveStatus('idle'), 5000)
     },
@@ -228,6 +228,10 @@ export default function SettingsPage() {
     }
   }
 
+  if (settingsLoading || categoriesLoading || methodsLoading) {
+    return <SettingsSkeleton />
+  }
+
   return (
     <Container maxWidth="xl">
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -240,12 +244,13 @@ export default function SettingsPage() {
           </Typography>
         </Box>
         <Button
-          variant="outlined"
+          variant="contained"
+          color="primary"
           startIcon={<HomeTourIcon />}
           onClick={() => setOnboardingOpen(true)}
-          sx={{ mt: 1 }}
+          sx={{ mt: 1, fontWeight: 600 }}
         >
-          Tour
+          ¿Cómo usar la App?
         </Button>
       </Box>
 
@@ -407,7 +412,7 @@ export default function SettingsPage() {
                 )}
                 {settings?.salary && (
                   <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2 }}>
-                    Último salario guardado: {formatCurrencyCOP(settings.salary)}
+                     Último salario guardado: {formatCurrency(settings.salary, settings?.currency || 'COP')}
                   </Typography>
                 )}
               </CardContent>

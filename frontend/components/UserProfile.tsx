@@ -7,18 +7,20 @@ import {
   Typography,
   TextField,
   Button,
-  Switch,
-  FormControlLabel,
-  Avatar,
   Grid,
+  MenuItem,
+  Select,
   FormControl,
   InputLabel,
-  Select,
-  MenuItem,
+  Alert,
+  Avatar,
+  FormControlLabel,
+  Switch,
 } from '@mui/material'
 import { UserSettings, ProfileUpdate, CURRENCIES } from '@/models'
 import { Loading } from '@/components/Loading'
 import api from '@/utils/api'
+import { formatCurrency } from '@/utils/currency'
 
 interface UserProfileProps {
   onSave?: () => void
@@ -34,6 +36,8 @@ export function UserProfile({ onSave }: UserProfileProps) {
     salary: undefined as number | undefined,
   })
   const [isSaving, setIsSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [saveMessage, setSaveMessage] = useState('')
 
   const { data: settings, isLoading } = useQuery<UserSettings>({
     queryKey: ['userSettings'],
@@ -60,9 +64,17 @@ export function UserProfile({ onSave }: UserProfileProps) {
       const { data } = await api.put<UserSettings>('/settings/profile', update)
       return data
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['userSettings'] })
       onSave?.()
+      setSaveStatus('success')
+      setSaveMessage(`Salario de ${formatCurrency(data.salary || 0, data.currency || 'COP')} guardado correctamente`)
+      setTimeout(() => setSaveStatus('idle'), 5000)
+    },
+    onError: (error: any) => {
+      setSaveStatus('error')
+      const message = error?.response?.data?.detail || 'Error al guardar los cambios'
+      setSaveMessage(`Error: ${message}`)
     },
   })
 
@@ -171,7 +183,7 @@ export function UserProfile({ onSave }: UserProfileProps) {
             control={
               <Switch
                 checked={formData.notifications_enabled}
-                onChange={(e) => handleChange('notifications_enabled', e.target.checked)}
+                onChange={(_e: React.ChangeEvent<HTMLInputElement>) => handleChange('notifications_enabled', _e.target.checked)}
               />
             }
             label="Notificaciones habilitadas"
@@ -182,6 +194,15 @@ export function UserProfile({ onSave }: UserProfileProps) {
             {isSaving ? 'Guardando...' : 'Guardar Cambios'}
           </Button>
         </Grid>
+        {saveStatus !== 'idle' && (
+          <Alert 
+            severity={saveStatus} 
+            sx={{ mt: 2, width: '100%' }}
+            onClose={() => setSaveStatus('idle')}
+          >
+            {saveMessage}
+          </Alert>
+        )}
       </Grid>
     </Box>
   )

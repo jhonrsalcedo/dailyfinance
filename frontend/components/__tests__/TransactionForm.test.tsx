@@ -1,14 +1,13 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import TransactionForm from '../TransactionForm'
-
-vi.mock('../TransactionForm', () => ({
-  default: () => <div data-testid="transaction-form">TransactionForm</div>,
-}))
+import { describe, it, expect } from 'vitest'
+import * as TransactionFormModule from '../TransactionForm'
 
 describe('TransactionForm', () => {
-  it('should render transaction form component', () => {
-    render(<TransactionForm />)
-    expect(screen.getByTestId('transaction-form')).toBeInTheDocument()
+  it('should export TransactionForm component', () => {
+    expect(TransactionFormModule.default).toBeDefined()
+  })
+
+  it('should be a valid React component', () => {
+    const Component = TransactionFormModule.default
+    expect(typeof Component).toBe('function')
   })
 })

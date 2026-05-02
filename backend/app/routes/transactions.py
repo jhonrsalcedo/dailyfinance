@@ -7,7 +7,7 @@ import csv
 import io
 
 from app.database import engine, Transaction, Category, PaymentMethod, User
-from app.schemas import TransactionCreate, TransactionRead
+from app.schemas import TransactionCreate, TransactionRead, TransactionUpdate
 from app.routes.auth import get_current_user
 from app.database import User
 
@@ -93,6 +93,26 @@ def delete_transaction(
     session.delete(transaction)
     session.commit()
     return {"message": "Transacción eliminada"}
+
+@router.put("/{transaction_id}", response_model=TransactionRead)
+def update_transaction(
+    transaction_id: int,
+    transaction_update: TransactionUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    transaction = session.get(Transaction, transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transacción no encontrada")
+    
+    update_data = transaction_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(transaction, field, value)
+    
+    session.add(transaction)
+    session.commit()
+    session.refresh(transaction)
+    return transaction
 
 @router.get("/export")
 def export_transactions(

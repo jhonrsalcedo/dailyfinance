@@ -44,6 +44,24 @@ class TransactionRead(TransactionBase):
     category: Optional[CategoryRead] = None
     method: Optional[PaymentMethodRead] = None
 
+class TransactionUpdate(BaseModel):
+    amount: Optional[float] = Field(default=None, gt=0)
+    date: Optional[str] = None
+    description: Optional[str] = Field(default=None, max_length=500)
+    category_id: Optional[int] = Field(default=None, gt=0)
+    method_id: Optional[int] = Field(default=None, gt=0)
+
+    @field_validator('date')
+    @classmethod
+    def validate_date(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        try:
+            datetime.strptime(v, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError('Date must be in YYYY-MM-DD format')
+        return v
+
 class BudgetBase(BaseModel):
     month: str
     limit_amount: float = Field(gt=0)

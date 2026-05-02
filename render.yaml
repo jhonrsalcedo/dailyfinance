@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: dailyfinance-api
+    env: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        value: libsql://dailyfinance-jhonrsalcedo.aws-us-east-2.turso.io
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: JWT_SECRET
+        sync: false
+      - key: NEXTAUTH_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_API_URL
+        value: https://dailyfinance-api.onrender.com/api/v1
+    healthCheckPath: /health
+    autoDeploy: true
+    branch: main

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
+import api from '@/utils/api'
 import {
   Container,
   Typography,
@@ -29,16 +29,22 @@ import {
   Button,
   Chip,
   useMediaQuery,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
-import { formatCurrencyCOP } from '@/utils/currency'
-import { Transaction, Category, PaymentMethod } from '@/models'
-import { Loading } from '@/components/Loading'
+import { formatCurrency } from '@/utils/currency'
+import { Transaction, Category, PaymentMethod, UserSettings } from '@/models'
+import { TransactionsSkeleton } from '@/components/skeletons'
+import TransactionForm from '@/components/TransactionForm'
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+
 
 function getCategoryName(id: number | null, categories: Category[]): string {
   if (!id) return '-'
@@ -62,11 +68,15 @@ export default function TransactionsPage() {
   const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 5 : 10)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<number | ''>('')
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [openEditDialog, setOpenEditDialog] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [transactionToDelete, setTransactionToDelete] = useState<number | null>(null)
 
   const { data: transactionsData, isLoading } = useQuery<Transaction[]>({
     queryKey: ['transactions'],
     queryFn: async () => {
-      const { data } = await axios.get<Transaction[]>(`${API_BASE_URL}/transactions`)
+      const { data } = await api.get<Transaction[]>('/transactions')
       return data
     },
   })
@@ -74,7 +84,7 @@ export default function TransactionsPage() {
   const { data: categoriesData } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/categories`)
+      const { data } = await api.get('/categories')
       return data
     },
   })
@@ -82,17 +92,27 @@ export default function TransactionsPage() {
   const { data: methodsData } = useQuery<PaymentMethod[]>({
     queryKey: ['paymentMethods'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/payment-methods`)
+      const { data } = await api.get('/payment-methods')
       return data
     },
   })
+
+  const { data: settings } = useQuery<UserSettings>({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const { data } = await api.get('/settings')
+      return data
+    },
+  })
+
+  const currency = settings?.currency || 'COP'
 
   const categories = categoriesData || []
   const paymentMethods = methodsData || []
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await axios.delete(`${API_BASE_URL}/transactions/${id}`)
+      await api.delete(`/transactions/${id}`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
@@ -134,12 +154,12 @@ export default function TransactionsPage() {
             Historial completo de tus ingresos y gastos
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          onClick={() => window.open(`${API_BASE_URL}/transactions/export`, '_blank')}
-          sx={{ flexShrink: 0 }}
-        >
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/transactions/export`, '_blank')}
+            sx={{ flexShrink: 0 }}
+          >
           Exportar
         </Button>
       </Box>
@@ -156,8 +176,8 @@ export default function TransactionsPage() {
                 Ingresos Totales
               </Typography>
               <Typography variant="h5" sx={{ color: 'success.main', fontWeight: 700 }}>
-                {formatCurrencyCOP(totalIncome)}
-              </Typography>
+                 {formatCurrency(totalIncome, currency)}
+               </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -172,8 +192,8 @@ export default function TransactionsPage() {
                 Gastos Totales
               </Typography>
               <Typography variant="h5" sx={{ color: 'error.main', fontWeight: 700 }}>
-                {formatCurrencyCOP(totalExpenses)}
-              </Typography>
+                 {formatCurrency(totalExpenses, currency)}
+               </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -187,7 +207,7 @@ export default function TransactionsPage() {
                 color: totalIncome - totalExpenses >= 0 ? 'success.main' : 'error.main',
                 fontWeight: 700 
               }}>
-                {formatCurrencyCOP(totalIncome - totalExpenses)}
+                {formatCurrency(totalIncome - totalExpenses, currency)}
               </Typography>
             </CardContent>
           </Card>
@@ -254,7 +274,7 @@ export default function TransactionsPage() {
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                      <Loading />
+                      <TransactionsSkeleton />
                     </TableCell>
                   </TableRow>
                 ) : displayedTransactions.length === 0 ? (
@@ -291,25 +311,35 @@ export default function TransactionsPage() {
                               fontWeight: 600,
                             }}
                           >
-                            {isIncome ? '+' : '-'}{formatCurrencyCOP(transaction.amount)}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          <IconButton size="small" color="primary">
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton 
-                            size="small" 
-                            color="error"
-                            onClick={() => deleteMutation.mutate(transaction.id)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
+                            {isIncome ? '+' : '-'}{formatCurrency(transaction.amount, currency)}
+                           </Typography>
+                         </TableCell>
+<TableCell align="center">
+                            <IconButton 
+                              size="small" 
+                              color="primary"
+                              onClick={() => {
+                                setEditingTransaction(transaction)
+                                setOpenEditDialog(true)
+                              }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+<IconButton 
+                              size="small" 
+                              color="error"
+                              onClick={() => {
+                                setTransactionToDelete(transaction.id)
+                                setDeleteConfirmOpen(true)
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                         </TableCell>
+                       </TableRow>
+                     )
+                   })
+                 )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -334,15 +364,15 @@ export default function TransactionsPage() {
                             {new Date(transaction.date).toLocaleDateString('es-CO')}
                           </Typography>
                         </Box>
-                        <Typography
-                          sx={{
-                            color: isIncome ? 'success.main' : 'error.main',
-                            fontWeight: 700,
-                            fontSize: '1rem',
-                          }}
-                        >
-                          {isIncome ? '+' : '-'}{formatCurrencyCOP(transaction.amount)}
-                        </Typography>
+                         <Typography
+                           sx={{
+                             color: isIncome ? 'success.main' : 'error.main',
+                             fontWeight: 700,
+                             fontSize: '1rem',
+                           }}
+                         >
+                           {isIncome ? '+' : '-'}{formatCurrency(transaction.amount, currency)}
+                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
                         <Chip
@@ -360,13 +390,23 @@ export default function TransactionsPage() {
                         />
                       </Box>
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton size="small" color="primary">
+                        <IconButton 
+                          size="small" 
+                          color="primary"
+                          onClick={() => {
+                            setEditingTransaction(transaction)
+                            setOpenEditDialog(true)
+                          }}
+                        >
                           <EditIcon fontSize="small" />
                         </IconButton>
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={() => deleteMutation.mutate(transaction.id)}
+                          onClick={() => {
+                            setTransactionToDelete(transaction.id)
+                            setDeleteConfirmOpen(true)
+                          }}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -392,6 +432,80 @@ export default function TransactionsPage() {
           />
         </CardContent>
       </Card>
+
+      <Dialog 
+        open={openEditDialog} 
+        onClose={() => {
+          setOpenEditDialog(false)
+          setEditingTransaction(null)
+        }}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Editar Transacción
+        </DialogTitle>
+        <DialogContent>
+          <TransactionForm 
+            transactionToEdit={editingTransaction}
+            isDialog={true}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ['transactions'] })
+              setOpenEditDialog(false)
+              setEditingTransaction(null)
+            }}
+            onCancelEdit={() => {
+              setOpenEditDialog(false)
+              setEditingTransaction(null)
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false)
+          setTransactionToDelete(null)
+        }}
+      >
+        <DialogTitle>
+          Confirmar Eliminación
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            ¿Estás seguro de que deseas eliminar esta transacción?
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
+            Esta acción no se puede deshacer.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => {
+              setDeleteConfirmOpen(false)
+              setTransactionToDelete(null)
+            }}
+            color="primary"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              if (transactionToDelete) {
+                deleteMutation.mutate(transactionToDelete)
+                setDeleteConfirmOpen(false)
+                setTransactionToDelete(null)
+              }
+            }}
+            color="error"
+            variant="contained"
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? <CircularProgress size={20} /> : 'Eliminar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   )
 }

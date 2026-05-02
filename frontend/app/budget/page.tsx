@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
+import api from '@/utils/api'
 import {
   Container,
   Typography,
@@ -36,11 +36,11 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { formatCurrencyCOP } from '@/utils/currency'
-import { Category } from '@/models'
-import { Loading } from '@/components/Loading'
+import { formatCurrency } from '@/utils/currency'
+import { Category, UserSettings } from '@/models'
+import { BudgetSkeleton } from '@/components/skeletons'
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+
 
 interface BudgetData {
   id: number
@@ -65,7 +65,7 @@ export default function BudgetPage() {
   const { data: categories } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/categories`)
+      const { data } = await api.get('/categories')
       return data
     },
   })
@@ -73,7 +73,7 @@ export default function BudgetPage() {
   const { data: budgets = [], isLoading } = useQuery<BudgetData[]>({
     queryKey: ['budgets', selectedMonth],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/budget?month=${selectedMonth}`)
+      const { data } = await api.get(`/budget?month=${selectedMonth}`)
       return data.map((b: any) => ({
         ...b,
         category_name: categories?.find((c: Category) => c.id === b.category_id)?.name || 'Sin categoría'
@@ -83,7 +83,7 @@ export default function BudgetPage() {
 
   const createMutation = useMutation({
     mutationFn: async (budget: { month: string; category_id: number; limit_amount: number }) => {
-      const { data } = await axios.post(`${API_BASE_URL}/budget`, budget)
+      const { data } = await api.post('/budget', budget)
       return data
     },
     onSuccess: () => {
@@ -94,7 +94,7 @@ export default function BudgetPage() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, budget }: { id: number; budget: { limit_amount: number } }) => {
-      const { data } = await axios.put(`${API_BASE_URL}/budget/${id}`, budget)
+      const { data } = await api.put(`/budget/${id}`, budget)
       return data
     },
     onSuccess: () => {
@@ -105,7 +105,7 @@ export default function BudgetPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await axios.delete(`${API_BASE_URL}/budget/${id}`)
+      await api.delete(`/budget/${id}`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] })
@@ -118,6 +118,16 @@ export default function BudgetPage() {
   }, {}) || {}
 
   const getCategoryName = (id: number) => categoriesMap[id] || 'Sin categoría'
+
+  const { data: settings } = useQuery<UserSettings>({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const { data } = await api.get('/settings')
+      return data
+    },
+  })
+
+  const currency = settings?.currency || 'COP'
 
   const totalBudget = budgets.reduce((sum, b) => sum + b.limit_amount, 0)
   const totalSpent = budgets.reduce((sum, b) => sum + b.spent_amount, 0)
@@ -184,8 +194,8 @@ export default function BudgetPage() {
                 Presupuesto Total
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                {formatCurrencyCOP(totalBudget)}
-              </Typography>
+                 {formatCurrency(totalBudget, currency)}
+               </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -200,8 +210,8 @@ export default function BudgetPage() {
                 Gastado
               </Typography>
               <Typography variant="h5" sx={{ color: 'error.main', fontWeight: 700 }}>
-                {formatCurrencyCOP(totalSpent)}
-              </Typography>
+                 {formatCurrency(totalSpent, currency)}
+               </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -216,8 +226,8 @@ export default function BudgetPage() {
                 Restante
               </Typography>
               <Typography variant="h5" sx={{ color: 'success.main', fontWeight: 700 }}>
-                {formatCurrencyCOP(remaining)}
-              </Typography>
+                 {formatCurrency(remaining, currency)}
+               </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -256,7 +266,7 @@ export default function BudgetPage() {
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                      <Loading />
+                      <BudgetSkeleton />
                     </TableCell>
                   </TableRow>
                 ) : budgets.length === 0 ? (
@@ -279,11 +289,11 @@ export default function BudgetPage() {
                       <TableCell>
                         <Typography fontWeight={500}>{getCategoryName(budget.category_id)}</Typography>
                       </TableCell>
-                      <TableCell align="right">{formatCurrencyCOP(budget.limit_amount)}</TableCell>
-                      <TableCell align="right">{formatCurrencyCOP(budget.spent_amount)}</TableCell>
-                      <TableCell align="right" sx={{ color: budget.remaining < 0 ? 'error.main' : 'text.primary' }}>
-                        {formatCurrencyCOP(budget.remaining)}
-                      </TableCell>
+                      <TableCell align="right">{formatCurrency(budget.limit_amount, currency)}</TableCell>
+                       <TableCell align="right">{formatCurrency(budget.spent_amount, currency)}</TableCell>
+                       <TableCell align="right" sx={{ color: budget.remaining < 0 ? 'error.main' : 'text.primary' }}>
+                         {formatCurrency(budget.remaining, currency)}
+                       </TableCell>
                       <TableCell sx={{ minWidth: 150 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <LinearProgress
@@ -344,17 +354,17 @@ export default function BudgetPage() {
                             {getCategoryName(budget.category_id)}
                           </Typography>
                           <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-                            <Chip
-                              label={`Límite: ${formatCurrencyCOP(budget.limit_amount)}`}
-                              size="small"
-                              sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main' }}
-                            />
-                            <Chip
-                              label={`${formatCurrencyCOP(budget.remaining)}`}
-                              size="small"
-                              color={budget.remaining < 0 ? 'error' : 'success'}
-                              variant="outlined"
-                            />
+                             <Chip
+                               label={`Límite: ${formatCurrency(budget.limit_amount, currency)}`}
+                               size="small"
+                               sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main' }}
+                             />
+                             <Chip
+                               label={`${formatCurrency(budget.remaining, currency)}`}
+                               size="small"
+                               color={budget.remaining < 0 ? 'error' : 'success'}
+                               variant="outlined"
+                             />
                           </Box>
                         </Box>
                         <Box sx={{ display: 'flex', gap: 0.5 }}>
@@ -368,9 +378,9 @@ export default function BudgetPage() {
                       </Box>
                       <Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            Gastado: {formatCurrencyCOP(budget.spent_amount)}
-                          </Typography>
+                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                             Gastado: {formatCurrency(budget.spent_amount, currency)}
+                           </Typography>
                           <Typography variant="caption" sx={{ fontWeight: 600, color: progressColor }}>
                             {progress.toFixed(0)}%
                           </Typography>

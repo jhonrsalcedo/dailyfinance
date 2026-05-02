@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
+import api from '@/utils/api'
 import {
   Box,
   Typography,
@@ -14,9 +14,10 @@ import {
   alpha,
   useTheme,
 } from '@mui/material'
-import { formatCurrencyCOP } from '@/utils/currency'
+import { formatCurrency } from '@/utils/currency'
+import { UserSettings } from '@/models'
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+
 
 interface Transaction {
   id: number
@@ -34,7 +35,7 @@ function RecentTransactionsList() {
   const { data: transactions } = useQuery<Transaction[]>({
     queryKey: ['recentTransactions'],
     queryFn: async () => {
-      const { data } = await axios.get<Transaction[]>(`${API_BASE_URL}/transactions`)
+      const { data } = await api.get<Transaction[]>('/transactions')
       return data.slice(0, 5)
     },
   })
@@ -42,10 +43,20 @@ function RecentTransactionsList() {
   const { data: categoriesData } = useQuery<{ id: number; name: string }[]>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE_URL}/categories`)
+      const { data } = await api.get('/categories')
       return data
     },
   })
+
+  const { data: settings } = useQuery<UserSettings>({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const { data } = await api.get('/settings')
+      return data
+    },
+  })
+
+  const currency = settings?.currency || 'COP'
 
   const getCategory = (id: number | null) => {
     if (!id) return null
@@ -130,7 +141,7 @@ function RecentTransactionsList() {
                     color: isIncome ? 'success.main' : 'error.main',
                   }}
                 >
-                  {isIncome ? '+' : '-'}{formatCurrencyCOP(transaction.amount)}
+                  {isIncome ? '+' : '-'}{formatCurrency(transaction.amount, currency)}
                 </Typography>
               </ListItem>
             )
