@@ -24,7 +24,7 @@ graph LR
     end
     
     subgraph Database
-        C[(SQLite / Turso)]
+        C[(SQLite_Turso)]
     end
     
     subgraph Deploy
@@ -180,8 +180,8 @@ erDiagram
     CATEGORY ||--o{ MONTHLY_BUDGET : budgets
     
     USER {
-        int id PK
-        string email UK
+        int id
+        string email
         string password_hash
         string username
         string created_at
@@ -190,8 +190,8 @@ erDiagram
     }
     
     USER_SETTINGS {
-        int id PK
-        int user_id FK UK
+        int id
+        int user_id
         string username
         string email
         float salary
@@ -203,40 +203,33 @@ erDiagram
     }
     
     CATEGORY {
-        int id PK
+        int id
         string name
         string icon
         string color
     }
     
     PAYMENT_METHOD {
-        int id PK
+        int id
         string name
         string type
     }
     
     TRANSACTION {
-        int id PK
+        int id
         float amount
         string date
         string description
-        int category_id FK
-        int method_id FK
+        int category_id
+        int method_id
     }
     
     MONTHLY_BUDGET {
-        int id PK
+        int id
         string month
-        int category_id FK
+        int category_id
         float limit_amount
     }
-    
-    note for USER "Stores user credentials and auth"
-    note for USER_SETTINGS "User preferences and profile"
-    note for CATEGORY "10 default categories (Income, Housing, etc.)"
-    note for PAYMENT_METHOD "4 methods: Cash, Debit, Credit, Transfer"
-    note for TRANSACTION "Core entity - all financial movements"
-    note for MONTHLY_BUDGET "Budget limits per category per month"
 ```
 
 ---
