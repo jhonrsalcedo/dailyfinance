@@ -143,12 +143,12 @@ graph TD
     C --> C4[Pydantic v2]
     C --> C5[JWT/Passlib]
     
-    D --> D1[SQLite (Dev)]
-    D --> D2[Turso libSQL (Prod)]
-    D --> D3[PostgreSQL (Optional)]
+    D --> D1[SQLite_Dev]
+    D --> D2[Turso_libSQL_Prod]
+    D --> D3[PostgreSQL_Optional]
     
-    E --> E1[Vercel (Frontend)]
-    E --> E2[Render (Backend)]
+    E --> E1[Vercel_Frontend]
+    E --> E2[Render_Backend]
     
     F --> F1[Vitest]
     F --> F2[React Testing Library]
