@@ -10,14 +10,18 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
-from app.config import engine, get_db_session
+from app.config import engine, get_db_session, IS_PRODUCTION
 from app.database import User, UserSettings
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
 router = APIRouter()
-SECRET_KEY = os.environ.get("SECRET_KEY", "your-secret-key-change-in-production")
+SECRET_KEY = os.environ.get("JWT_SECRET") or os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if IS_PRODUCTION:
+        raise ValueError("JWT_SECRET or SECRET_KEY must be set in production")
+    SECRET_KEY = "dev-secret-key-not-for-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 
