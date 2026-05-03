@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlmodel import Session, select
-from app.database import engine, Category, PaymentMethod
+from app.config import engine
+from app.database import Category, PaymentMethod
 
 DEFAULT_CATEGORIES = [
     {"name": "Ingresos", "icon": "attach_money", "color": "#10b981"},

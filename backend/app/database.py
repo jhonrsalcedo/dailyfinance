@@ -1,10 +1,7 @@
 from typing import Optional
 from pathlib import Path
-from sqlmodel import Field, SQLModel, create_engine, Session
-
-db_path = Path(__file__).parent.parent.parent / "db" / "dailyfinance.db"
-sqlite_url = f"sqlite:///{db_path}"
-engine = create_engine(sqlite_url, echo=False)
+from sqlmodel import Field, SQLModel
+from app.config import engine
 
 def create_db_and_tables(engine):
     SQLModel.metadata.create_all(engine)
@@ -19,17 +16,20 @@ class User(SQLModel, table=True):
     reset_code_expires: Optional[str] = Field(default=None)
 
 class Category(SQLModel, table=True):
+    __tablename__ = "category"
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     icon: Optional[str]
     color: Optional[str]
 
 class PaymentMethod(SQLModel, table=True):
+    __tablename__ = "paymentmethod"
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     type: str
 
 class Transaction(SQLModel, table=True):
+    __tablename__ = "transaction"
     id: Optional[int] = Field(default=None, primary_key=True)
     amount: float = Field(gt=0.0)
     date: str = Field(index=True)
@@ -38,12 +38,14 @@ class Transaction(SQLModel, table=True):
     method_id: Optional[int] = Field(default=None, foreign_key="paymentmethod.id")
 
 class MonthlyBudget(SQLModel, table=True):
+    __tablename__ = "monthlybudget"
     id: Optional[int] = Field(default=None, primary_key=True)
     month: str = Field(index=True)
     category_id: int = Field(foreign_key="category.id")
     limit_amount: float = Field(ge=0.0)
 
 class UserSettings(SQLModel, table=True):
+    __tablename__ = "usersettings"
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: Optional[int] = Field(default=None, foreign_key="user.id", unique=True)
     username: Optional[str] = Field(default="Usuario", max_length=100)
