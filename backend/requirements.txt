@@ -2,7 +2,6 @@ fastapi
 uvicorn[standard]
 pydantic>=2.0
 sqlmodel
-sqlalchemy-libsql
 python-multipart
 pandas
 python-jose[cryptography]
@@ -12,3 +11,4 @@ email-validator
 pytest
 pytest-asyncio
 httpx
+requests

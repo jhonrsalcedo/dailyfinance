@@ -1,56 +1,22 @@
 import os
 from pathlib import Path
-from typing import Optional
 from sqlmodel import SQLModel, create_engine
-from sqlalchemy import create_engine as sqla_create_engine
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.engine import Engine
 
 def get_database_url() -> str:
-    return os.getenv(
-        "DATABASE_URL",
-        f"sqlite:///{get_default_db_path()}"
-    )
+    url = os.getenv("DATABASE_URL", "")
+    if url:
+        return url
+    return f"sqlite:///{get_default_db_path()}"
 
 def get_default_db_path() -> Path:
-    return Path(__file__).parent.parent.parent / "db" / "dailyfinance.db"
+    return Path("/tmp") / "dailyfinance.db"
 
-def transform_libsql_url(database_url: str) -> tuple[str, dict]:
-    """
-    Transform libsql:// URLs to sqlite+libsql:// format for sqlalchemy-libsql.
-    Returns (transformed_url, connect_args)
-    """
-    if database_url.startswith("libsql://"):
-        # Get auth token from environment
-        auth_token = os.getenv("TURSO_AUTH_TOKEN", "")
-        
-        # Convert libsql:// to sqlite+libsql://
-        # Format: sqlite+libsql://{host}?secure=true
-        transformed = database_url.replace("libsql://", "sqlite+libsql://", 1)
-        
-        # Add secure=true if not already present
-        if "secure=" not in transformed:
-            separator = "&" if "?" in transformed else "?"
-            transformed = f"{transformed}{separator}secure=true"
-        
-        connect_args = {}
-        if auth_token:
-            connect_args["auth_token"] = auth_token
-        
-        return transformed, connect_args
-    
-    return database_url, {}
-
-def create_engine_by_url(database_url: str) -> sqla_create_engine:
-    # Handle libsql:// URLs
-    if database_url.startswith("libsql"):
-        url, connect_args = transform_libsql_url(database_url)
-        return sqla_create_engine(
-            url,
-            echo=False,
-            connect_args=connect_args,
-        )
-    
+def create_engine_by_url(database_url: str) -> Engine:
     if database_url.startswith("sqlite"):
+        db_path = database_url.replace("sqlite:///", "")
+        os.makedirs(Path(db_path).parent, exist_ok=True)
         return create_engine(
             database_url,
             echo=False,
