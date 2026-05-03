@@ -196,7 +196,55 @@ Si login falla:
 
 ## URLs Actuales
 
-| Servicio | URL |
-|----------|-----|
-| Backend | https://dailyfinance.onrender.com |
-| Frontend | https://dailyfinance-web.vercel.app |
+| Servicio | URL | Estado |
+|----------|-----|--------|
+| Backend | https://dailyfinance.onrender.com | ✅ Production + Neon PostgreSQL |
+| Frontend | https://dailyfinance-web.vercel.app | ✅ Producción |
+| API Docs | https://dailyfinance.onrender.com/docs | ✅ |
+
+---
+
+## Arquitectura Final
+
+```
+┌─────────────────────────────────────────────────────┐
+│  FRONTEND (Vercel)                                  │
+│  https://dailyfinance-web.vercel.app              │
+│  NEXT_PUBLIC_API_URL=...onrender.com/api/v1        │
+└─────────────────────────────────────────────────────┘
+                    │
+                    ▼ (API calls)
+┌─────────────────────────────────────────────────────┐
+│  BACKEND (Render)                                  │
+│  https://dailyfinance.onrender.com                 │
+│  DATABASE_URL=Neon PostgreSQL (postgresql://...)      │
+│  ENVIRONMENT=production                         │
+└─────────────────────────────────────────────────────┘
+                    │
+                    ▼ (SQL)
+┌─────────────────────────────────────────────────────┐
+│  NEON POSTGRESQL (Cloud)                          │
+│  postgresql://neondb_owner:***@...neon.tech      │
+│  500MB gratuito                                │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## Desarrollo Local
+
+```bash
+cd backend
+
+# Configurar .env (copiar de .env.example)
+cp .env.example .env
+# Editar con DATABASE_URL de Neon
+
+# Instalar y ejecutar
+make install
+make run-dev
+
+# Frontend
+cd ../frontend
+npm run dev
+```
