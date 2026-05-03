@@ -80,7 +80,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:3001",
-        "https://dailyfinance.vercel.app",
+        "https://dailyfinance-web.vercel.app",
         "https://*.vercel.app",
     ],
     allow_credentials=True,
