@@ -1,6 +1,8 @@
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -15,7 +17,7 @@ const handler = NextAuth({
         }
 
         try {
-          const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+          const response = await fetch(`${apiUrl}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -30,7 +32,7 @@ const handler = NextAuth({
 
           const data = await response.json()
           
-          const userResponse = await fetch('http://localhost:8000/api/v1/auth/me', {
+          const userResponse = await fetch(`${apiUrl}/auth/me`, {
             headers: { 'Authorization': `Bearer ${data.access_token}` }
           })
           
