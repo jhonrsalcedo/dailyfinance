@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from sqlmodel import SQLModel
 from sqlalchemy.exc import IntegrityError
 from contextlib import asynccontextmanager
-from app.config import engine, create_db_and_tables
+from app.config import engine, create_db_and_tables, get_env_info
 from app.seed import seed_database
 from app.routes.auth import router as auth_router
 from app.routes.transactions import router as transaction_router
@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    env_info = get_env_info()
+    print(f"Starting in {env_info['environment']} mode...")
+    print(f"Database: {env_info['database_type']}")
     print("Inicializando base de datos...")
     create_db_and_tables(engine)
     seed_database()
@@ -73,7 +76,12 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+    env_info = get_env_info()
+    return {
+        "status": "healthy",
+        "environment": env_info.get("environment"),
+        "database": env_info.get("database_type"),
+    }
 
 app.add_middleware(
     CORSMiddleware,

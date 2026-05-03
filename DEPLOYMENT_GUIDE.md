@@ -1,137 +1,202 @@
-# 🚀 Deployment Guide - Daily Finance App
+# Deployment Guide - Daily Finance App
+
+## Ambientes
+
+| Ambiente | Propósito | Base de Datos |
+|----------|----------|---------------|
+| **Desarrollo** | Pruebas locales | Turso (libsql) |
+| **Producción** | Deploy real | Turso (PostgreSQL) |
+
+---
 
 ## Prerequisites
-- ✅ GitHub account with this repo
-- ✅ Render account created
-- ✅ Vercel account created
+
+- GitHub account con este repo
+- Turso account (DB gratuita)
+- Render account (backend)
+- Vercel account (frontend)
 
 ---
 
-## Step 1: Deploy Backend to Render
+## Desarrollo Local
 
-### 1.1 Connect GitHub to Render
-1. Go to [Render Dashboard](https://dashboard.render.com/)
-2. Click **"New +"** → **"Web Service"**
-3. Under "Connect a repository", find your GitHub repo (`jhonrsalcedo/dailyfinance`)
-4. Click **"Connect"**
+### 1. Clonar y configurar
 
-### 1.2 Configure the Service
-After connecting, you'll see the configuration:
-- **Name**: `dailyfinance-api`
-- **Branch**: `main`
-- **Build Command**: `pip install -r backend/requirements.txt` (should auto-detect)
-- **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT` (should auto-detect)
+```bash
+git clone https://github.com/jhonrsalcedo/dailyfinance.git
+cd dailyfinance
+```
 
-### 1.3 Set Environment Variables
-Click **"Advanced"** and add these env vars:
+### 2. Configurar backend
 
-| Key | Value | Notes |
-|-----|-------|-------|
-| `DATABASE_URL` | `libsql://dailyfinance-db.turso.io` | Create free DB in Turso first |
-| `TURSO_AUTH_TOKEN` | Your Turso token | Get from Turso dashboard |
-| `JWT_SECRET` | Generate: `python -c "import secrets; print(secrets.token_hex(32))"` | Copy the output |
-| `ENVIRONMENT` | `production` | |
+```bash
+cd backend
 
-### 1.4 Create the Service
-1. Click **"Create Web Service"**
-2. Wait for build to complete (~2-3 minutes)
-3. Once deployed, you'll see a URL like: `https://dailyfinance-api.onrender.com`
-4. Test: Visit `https://dailyfinance-api.onrender.com/health`
+# Copiar plantilla
+cp .env.example .env
+
+# Editar .env con tus valores
+# DATABASE_URL=libsql://dailyfinance-jhonrsalcedo.aws-us-east-2.turso.io
+# TURSO_AUTH_TOKEN=tu-token-de-turso
+# ENVIRONMENT=development
+```
+
+### 3. Instalar y ejecutar
+
+```bash
+make install   # Crear venv e instalar dependencias
+make run-dev   # Ejecutar en desarrollo
+```
+
+### 4. Configurar frontend
+
+```bash
+cd frontend
+cp .env.local.example .env.local
+
+# Editar con:
+# NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
+
+### 5. Ejecutar frontend
+
+```bash
+npm run dev
+```
+
+### 6. Acceder
+
+- Backend: http://localhost:8000
+- Frontend: http://localhost:3000
+- API Docs: http://localhost:8000/docs
 
 ---
 
-## Step 2: Deploy Frontend to Vercel
+## Producción (Render + Vercel)
 
-### 2.1 Connect GitHub to Vercel
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Click **"Add New..."** → **"Project"**
-3. Find your GitHub repo (`jhonrsalcedo/dailyfinance`)
-4. Click **"Import"**
+### 1. Deploy Backend a Render
 
-### 2.2 Configure the Project
-Settings should auto-detect:
-- **Framework Preset**: `Next.js`
-- **Build Command**: `next build` (or `npm run build`)
-- **Output Directory**: `.next`
+#### Conectar GitHub
+1. Ve a https://dashboard.render.com/
+2. Click **New +** → **Web Service**
+3. Conecta tu repo `jhonrsalcedo/dailyfinance`
 
-### 2.3 Set Environment Variables
-In the "Environment Variables" section, add:
+#### Configurar servicio
+| Campo | Valor |
+|-------|-------|
+| Name | `dailyfinance-api` |
+| Branch | `main` |
+| Root Directory | `backend` |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
 
+#### Environment Variables
 | Key | Value |
 |-----|-------|
-| `NEXTAUTH_SECRET` | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
-| `NEXTAUTH_URL` | `https://your-app-name.vercel.app` (use the URL Vercel gives you) |
-| `NEXT_PUBLIC_API_URL` | `https://dailyfinance-api.onrender.com/api/v1` (your Render URL) |
+| `DATABASE_URL` | `postgres://...turso.io` (PostgreSQL de Turso) |
+| `ENVIRONMENT` | `production` |
+| `JWT_SECRET` | `python -c "import secrets; print(secrets.token_hex(32))"` |
 
-### 2.4 Deploy
-1. Click **"Deploy"**
-2. Wait for build (~2-3 minutes)
-3. Visit your Vercel URL: `https://dailyfinance-xxx.vercel.app`
+#### Deploy
+Click **Deploy latest commit**
 
 ---
 
-## Step 3: Verify Everything Works
+### 2. Deploy Frontend a Vercel
 
-### Test the Backend
+#### Conectar GitHub
+1. Ve a https://vercel.com/dashboard
+2. Click **Add New...** → **Project**
+3. Importa `dailyfinance`
+4. Root Directory: `frontend`
+
+#### Environment Variables
+| Key | Value |
+|-----|-------|
+| `NEXTAUTH_SECRET` | Generado: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `NEXTAUTH_URL` | `https://tu-proyecto.vercel.app` |
+| `NEXT_PUBLIC_API_URL` | `https://dailyfinance-api.onrender.com/api/v1` |
+
+#### Deploy
+Click **Deploy**
+
+---
+
+## Verificación
+
+### Test backend
+
 ```bash
-# Should return {"status": "healthy"}
 curl https://dailyfinance-api.onrender.com/health
-
-# Should return categories
-curl https://dailyfinance-api.onrender.com/api/v1/categories
 ```
 
-### Test the Frontend
-1. Visit your Vercel URL
-2. You should see the Dashboard in "Demo Mode"
-3. Try logging in or registering
-4. Test adding a transaction
+### Test frontend
 
-### Test Authentication
-1. Register a new user
-2. Login
-3. Create a transaction
-4. Check Dashboard updates
+Abre https://tu-proyecto.vercel.app
 
 ---
 
-## 🔧 Troubleshooting
+## Estructura de Archivos
 
-### CORS Issues
-If frontend can't reach backend:
-1. Check `NEXT_PUBLIC_API_URL` in Vercel is correct
-2. Verify backend CORS allows your Vercel URL
-3. Check browser console for CORS errors
-
-### Database Issues
-If you see database errors:
-1. Verify Turso DATABASE_URL is correct
-2. Check TURSO_AUTH_TOKEN is valid
-3. Ensure database has data (seed runs on first start)
-
-### Auth Issues
-If login doesn't work:
-1. Verify JWT_SECRET is set in Render
-2. Check NEXTAUTH_SECRET matches in Vercel and Render
-3. Check browser cookies are enabled
+```
+dailyfinance/
+├── .env                    # NO commiteado (local)
+├── .env.example           # Plantilla documentada
+├── backend/
+│   ├── .env               # NO commiteado
+│   ├── .env.example       # Plantilla documentada
+│   ├── Makefile           # Scripts de build
+│   └── app/config.py      # Config multi-ambiente
+└── frontend/
+    └── .env.local         # NO commiteado
+```
 
 ---
 
-## 📝 Notes
+## Comandos Útiles
 
-- **Free Tier**: Both Render and Vercel have free tiers suitable for demo
-- **Cold Start**: Render's free tier sleeps after 15 min of inactivity
-- **Database**: Turso offers 5GB free storage
+### Backend
 
----
-
-## 🚀 Quick Commands
-
-Generate secrets:
 ```bash
-# Python (for backend)
-python -c "import secrets; print(secrets.token_hex(32))"
-
-# Node.js (for frontend)
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+cd backend
+make run-dev       # Desarrollo
+make run-prod      # Producción
+make test         # Tests
 ```
+
+### Frontend
+
+```bash
+cd frontend
+npm run dev        # Desarrollo
+npm run build     # Build producción
+npm run lint      # Linting
+```
+
+---
+
+## Troubleshooing
+
+### CORS
+Si el frontend no reacha el backend:
+- Verificar `NEXT_PUBLIC_API_URL` en Vercel
+- Verificar CORS origins en `main.py`
+
+### Database
+Si hay errores de DB:
+- Verificar `DATABASE_URL` en Render
+- Verificar credentials de Turso
+
+### Auth
+Si login falla:
+- Verificar `JWT_SECRET` en Render
+- Verificar `NEXTAUTH_SECRET` en Vercel
+
+---
+
+## URLs Actuales
+
+| Servicio | URL |
+|----------|-----|
+| Backend | https://dailyfinance.onrender.com |
+| Frontend | https://dailyfinance-web.vercel.app |
