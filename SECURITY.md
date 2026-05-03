@@ -125,4 +125,4 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 | Usar `.env` local | Escribir passwords en código |
 | Usar placeholders `<password>` | Exponer URLs reales |
 | Generar secrets con scripts | Compartir credenciales |
-| Verificar antes de push | Commit datos sensibles |
+| Verificar antes de push | Commit datos sensibles |test
