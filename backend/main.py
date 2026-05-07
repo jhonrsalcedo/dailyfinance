@@ -21,13 +21,9 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    env_info = get_env_info()
-    print(f"Starting in {env_info['environment']} mode...")
-    print(f"Database: {env_info['database_type']}")
     print("Inicializando base de datos...")
     create_db_and_tables(engine)
     seed_database()
-    print("DB lista con datos por defecto.")
     yield
     print("Apagando servicios...")
 
