@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from sqlmodel import SQLModel
 from sqlalchemy.exc import IntegrityError
 from contextlib import asynccontextmanager
-from app.config import engine, create_db_and_tables, get_env_info
+from app.config import engine, create_db_and_tables
 from app.seed import seed_database
 from app.routes.auth import router as auth_router
 from app.routes.transactions import router as transaction_router
@@ -76,12 +76,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 @app.get("/health")
 def health_check():
-    env_info = get_env_info()
-    return {
-        "status": "healthy",
-        "environment": env_info.get("environment"),
-        "database": env_info.get("database_type"),
-    }
+    return {"status": "healthy"}
 
 app.add_middleware(
     CORSMiddleware,
@@ -89,7 +84,6 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:3001",
         "https://dailyfinance-web.vercel.app",
-        "https://*.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],

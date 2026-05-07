@@ -194,11 +194,8 @@ def forgot_password(request: ForgotPasswordRequest, session: Session = Depends(g
     user.reset_code_expires = (datetime.now() + timedelta(minutes=15)).isoformat()
     session.commit()
     
-    print(f"\n===== CÓDIGO DE RECUPERACIÓN =====")
-    print(f"Email: {user.email}")
-    print(f"Código: {code}")
-    print(f"Expira en 15 minutos")
-    print(f"==============================\n")
+    # Security: Do NOT log or expose the code - only send via email in real app
+    # print(f"Password reset requested for: {user.email}")
     
     return {"message": "Si el email existe, recibirás un código de recuperación"}
 
