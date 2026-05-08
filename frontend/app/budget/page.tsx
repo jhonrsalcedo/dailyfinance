@@ -18,9 +18,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-} from '@mui/material'
-import { BudgetSkeleton } from '@/components/skeletons'
-import RequireAuth from '@/components/RequireAuth'
   TableHead,
   TableRow,
   Dialog,
@@ -42,8 +39,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { formatCurrency } from '@/utils/currency'
 import { Category, UserSettings } from '@/models'
 import { BudgetSkeleton } from '@/components/skeletons'
-
-
+import RequireAuth from '@/components/RequireAuth'
 
 interface BudgetData {
   id: number
