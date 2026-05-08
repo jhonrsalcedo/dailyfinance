@@ -18,6 +18,9 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+} from '@mui/material'
+import { BudgetSkeleton } from '@/components/skeletons'
+import RequireAuth from '@/components/RequireAuth'
   TableHead,
   TableRow,
   Dialog,
@@ -53,6 +56,14 @@ interface BudgetData {
 }
 
 export default function BudgetPage() {
+  return (
+    <RequireAuth>
+      <BudgetPageContent />
+    </RequireAuth>
+  )
+}
+
+function BudgetPageContent() {
   const theme = useTheme()
   const queryClient = useQueryClient()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -447,5 +458,13 @@ export default function BudgetPage() {
         </DialogActions>
       </Dialog>
     </Container>
+  )
+}
+
+export default function BudgetPage() {
+  return (
+    <RequireAuth>
+      <BudgetPageContent />
+    </RequireAuth>
   )
 }

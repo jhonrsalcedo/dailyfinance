@@ -33,6 +33,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+} from '@mui/material'
+import { TransactionsSkeleton } from '@/components/skeletons'
+import RequireAuth from '@/components/RequireAuth'
   CircularProgress,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
@@ -61,6 +64,14 @@ function getCategoryColor(_id: number | null): string {
 }
 
 export default function TransactionsPage() {
+  return (
+    <RequireAuth>
+      <TransactionsPageContent />
+    </RequireAuth>
+  )
+}
+
+function TransactionsPageContent() {
   const theme = useTheme()
   const queryClient = useQueryClient()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -507,5 +518,13 @@ export default function TransactionsPage() {
         </DialogActions>
       </Dialog>
     </Container>
+  )
+}
+
+export default function TransactionsPage() {
+  return (
+    <RequireAuth>
+      <TransactionsPageContent />
+    </RequireAuth>
   )
 }
