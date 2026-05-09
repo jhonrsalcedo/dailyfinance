@@ -187,6 +187,84 @@ cat lint-staged.config.js
    - Variables de entorno faltantes
    - Errores de código (debería pasar local primero)
 
+## 11. Gestión de Dependencias
+
+### Python (pip)
+
+#### Notificaciones de Nueva Versión
+Cuando ejecutas commands que usan pip, puedes ver:
+```
+[notice] A new release of pip is available: 24.3.1 -> 26.1.1
+```
+
+Esto es **informativo, no crítico**. Significa hay una nueva versión disponible.
+
+#### Cuándo Actualizar
+- No hay prisa inmediata
+- Recomendado: actualizar cada cierto tiempo (1-2 meses)
+- Para proyectos nuevos o cuando instales dependencias
+- Ejecutar:
+  ```bash
+  pip install --upgrade pip
+  ```
+
+#### Por qué Importa
+- Mejoras de performance
+- Security patches
+- Bug fixes menores
+- No afecta proyectos existentes (dependencias lockeadas en requirements.txt)
+
+#### Verificar Versión Actual
+```bash
+pip --version
+```
+
+### Node.js (npm)
+
+#### Notificaciones de Nueva Versión
+Ejecutar:
+```bash
+npm outdated
+```
+
+Muestra paquetes desactualizados en package.json vs installed.
+
+#### Actualizar Dependencias
+```bash
+# Actualizar todos los paquetes
+npm update
+
+# Actualizar un paquete específico
+npm install package@latest
+```
+
+#### Versioning Semántico
+| Prefijo | Ejemplo | Significado |
+|--------|--------|------------|
+| `^` | ^2.0.0 | Mayor igual (2.x.x) |
+| `~` | ~2.1.0 | Mayor+menor igual (2.1.x) |
+| sin | 2.1.0 | Versión exacta |
+
+### Best Practices
+
+#### Python
+1. **Freezar versiones** en requirements.txt:
+   ```bash
+   pip freeze > requirements.txt
+   ```
+2. **Usar virtualenv** para aislar proyectos
+3. **No** actualizar en producción sin testing previo
+
+#### Node.js
+1. **npm ci** en CI/CD (usa package-lock.json exacto)
+2. **Auditar** vulnerabilidades:
+   ```bash
+   npm audit
+   ```
+3. **Revisar** cambiosbreaking en changelogs
+
+---
+
 ## Recursos
 - [Husky Docs](https://typicode.github.io/husky/)
 - [lint-staged Docs](https://github.com/lint-staged/lint-staged)
