@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/utils/api'
 import {
@@ -11,8 +13,10 @@ import {
   Card,
   CardContent,
   TextField,
+  Button,
   useTheme,
 } from '@mui/material'
+import LoginIcon from '@mui/icons-material/Login'
 import {
   BarChart,
   Bar,
@@ -71,7 +75,43 @@ function CustomTooltip({ active, payload, label, currency }: CustomTooltipProps 
 }
 
 export default function ReportsPage() {
+  return <AuthChecker />
+}
+
+function AuthChecker() {
+  const { status } = useSession()
+  const router = useRouter()
   const theme = useTheme()
+
+  if (status === 'loading') {
+    return <ReportsSkeleton />
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
+        <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
+          Reportes Financieros
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
+          Esta función está disponible para usuarios registrados.
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<LoginIcon />}
+          onClick={() => router.push('/login')}
+          size="large"
+        >
+          Iniciar Sesión
+        </Button>
+      </Container>
+    )
+  }
+
+  return <ReportsContent theme={theme} />
+}
+
+function ReportsContent({ theme }: { theme: any }) {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7))
 
   const { data: monthlyStats } = useQuery<{ month: string; income: number; expenses: number; balance: number }>({
