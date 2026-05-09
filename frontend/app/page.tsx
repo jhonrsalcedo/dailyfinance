@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   Box,
-  Button,
   Chip,
   alpha,
   useTheme,
@@ -17,7 +16,6 @@ import {
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import SavingsIcon from '@mui/icons-material/Savings'
-import LoginIcon from '@mui/icons-material/Login'
 import TransactionForm from '@/components/TransactionForm'
 import DashboardBalance from '@/components/DashboardBalance'
 import RecentTransactions from '@/components/RecentTransactions'
@@ -166,16 +164,6 @@ export default function Dashboard() {
             Monitorea tus finanzas {isAuthenticated ? 'en tiempo real' : '(Demo)'}
           </Typography>
         </Box>
-        {!isAuthenticated && (
-          <Button
-            variant="contained"
-            startIcon={<LoginIcon />}
-            href="/login"
-            size="small"
-          >
-            Iniciar Sesión
-          </Button>
-        )}
       </Box>
 
       {!isAuthenticated && (
