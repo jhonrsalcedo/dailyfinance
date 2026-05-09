@@ -354,3 +354,42 @@ matcher: ['/dashboard/:path*', '/settings/:path*', '/transactions/:path*', '/rep
 - [ ] Agregar en navItems del Sidebar con `requiresAuth: true`
 - [ ] Agregar ruta en matcher de middleware.ts
 - [ ] NO modificar la page (no hacer custom UI)
+
+---
+
+## 11. Reglas de Código Limpio
+
+### Imports
+- ✅ Usar desde `utils/api.ts` - NO hardcodear `API_BASE_URL`
+- ✅ NO duplicar imports (verificar antes de importar)
+
+### Patterns Correctos
+```ts
+// ✅ CORRECTO
+import api from '@/utils/api'
+const { data } = await api.get('/endpoint')
+
+// ❌ INCORRECTO
+import axios from 'axios'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const { data } = await axios.get(`${API_BASE_URL}/endpoint`)
+```
+
+### Antes de Commit
+```bash
+# Verificar sin errores
+npm run typecheck
+npm run lint
+npm run test
+
+# Buscar console.log
+grep -r "console.log" --include="*.ts" --include="*.tsx"
+```
+
+### Checklist de Limpieza
+- [ ] Sin `console.log` de debug
+- [ ] Sin imports sin usar
+- [ ] Sin URLs hardcodeadas (usar process.env)
+- [ ] Sin código comentado
+- [ ] TypeScript sin errores (`npm run typecheck`)
+- [ ] ESLint pasa (`npm run lint`)
