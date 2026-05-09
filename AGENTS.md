@@ -99,6 +99,21 @@ Daily Finance App es una aplicación de finanzas personales para control de gast
 
 ---
 
+## Regla: Documentación Post-Deploy
+
+Después de enviar código a producción (merge a main + push):
+1. **SIEMPRE** actualizar documentación en LEARN_*.md
+2. **SIEMPRE** actualizar skills en `.opencode/skills/`
+3. **SIEMPRE** confirmar con usuario antes de producción
+
+### Checklist Documentación
+- [ ] LEARN_CICD.md actualizado (si hay cambios de CI/CD)
+- [ ] LEARN_NextJS.md actualizado (si hay cambios de frontend)
+- [ ] LEARN_FastAPI.md actualizado (si hay cambios de backend)
+- [ ] Skills actualizados con nuevos patrones
+
+---
+
 ## Scripts Disponibles
 
 ### Frontend

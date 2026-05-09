@@ -55,3 +55,41 @@ frontend/
 
 ## Documentación
 - Patrones en LEARN_NextJS.md
+
+## Auth Protection (Regla Estándar)
+
+### Nueva Sección Protegida
+
+Para proteger una ruta de usuario no autenticado:
+
+**1. Sidebar.tsx** - Agregar en navItems:
+```typescript
+{ label: 'NuevaSección', labelKey: 'nav.nuevaSeccion', icon: <Icon />, href: '/nuevaSeccion', requiresAuth: true }
+```
+
+**2. middleware.ts** - Agregar en matcher:
+```typescript
+matcher: ['/transactions/:path*', '/reports/:path*', '/nuevaSeccion/:path*']
+```
+
+**3. NO modificar la page** - El Sidebar maneja el comportamiento
+
+### Código Limpio (Antes de Commit)
+```bash
+npm run check     # lint + typecheck
+npm run test     # tests
+
+# NO usar console.log
+# NO hardcodear URLs - usar process.env
+# NO duplicar imports
+```
+
+---
+
+## Deployment
+- Ramas: `develop` (dev) → `main` (prod)
+- Después de push a develop, PREGUNTAR: "¿Listo para enviar a producción?"
+- Si usuario confirma:
+  - git merge develop
+  - git tag -a v1.0.0 -m "Release 1.0.0"
+  - git push origin main --tags
