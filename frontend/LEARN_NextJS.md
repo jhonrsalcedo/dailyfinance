@@ -393,3 +393,52 @@ grep -r "console.log" --include="*.ts" --include="*.tsx"
 - [ ] Sin código comentado
 - [ ] TypeScript sin errores (`npm run typecheck`)
 - [ ] ESLint pasa (`npm run lint`)
+
+---
+
+## 12. Flujo de Deploy a Producción
+
+### Ramas
+- `develop` → Desarrollo (localhost + URLs dev)
+- `main` → Producción (Render + Vercel)
+
+### Flujo Estándar
+
+```bash
+# 1. Trabajar en develop
+git checkout develop
+# ...hacer cambios...
+
+# 2. Verificar localmente
+npm run check     # lint + typecheck
+npm run test    # tests
+
+# 3. Push a develop
+git add .
+git commit -m "feat: descripción"
+git push origin develop
+
+# 4. Después de verificar que todo funciona → PREGUNTAR:
+# "¿Listo para enviar a producción?"
+
+# 5. Si usuario confirma:
+git checkout main
+git merge develop
+git tag -a v1.0.0 -m "Release 1.0.0"
+git push origin main --tags
+```
+
+### Regla: Preguntar Antes de Production Deploy
+
+> **IMPORTANT**: Después de push exitoso a develop, SIEMPRE preguntar al usuario:
+> 
+> - "¿Todo funciona bien en desarrollo?"
+> - "¿Listo para enviar a producción?"
+> 
+> Solo proceder con merge + tag + push si el usuario confirma explícitamente.
+
+### Checklist Pre-Production
+- [ ] `npm run check` pasa (lint + typecheck)
+- [ ] `npm run test` pasa
+- [ ] `pytest` pasa (backend)
+- [ ] Usuario confirmó → proceder

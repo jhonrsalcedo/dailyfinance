@@ -4,7 +4,33 @@ Todos los cambios notables de este proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [En Desarrollo]
+---
+
+## [1.0.0] - 2026-05-09
+
+### Agregado
+- Security: Rate limiting (slowapi) para /login y /register
+- Security: CORS restrictivo (solo GET, POST, PUT, DELETE)
+- Security: Logging de auditoría para intentos de login
+- Auth: Middleware proteje /reports y /budget
+- Auth: Sidebar con requiresAuth para reports
+- Docs: Guía de dependencias en LEARN_CICD.md
+- Docs: Patrón de secciones protegidas en LEARN_NextJS.md
+- Docs: Reglas de código limpio
+
+### Corregido
+- Reports ahora require auth (protegido con middleware + sidebar)
+- Budget ahora require auth
+- Código limpio: API_BASE_URL consolidado en utils/api.ts
+- Imports duplicados removidos en transactions.py
+- Login button redundante removido del dashboard
+
+### Cambios
+- Migración a producción lista
+
+---
+
+## [0.1.0] - 2026-04-22
 
 ### Agregado
 - Budget API: CRUD completo con cálculo automático de gastado desde transacciones
@@ -19,7 +45,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
-## [1.0.0] - 2026-04-22
+## [0.1.0] - 2026-04-22
 
 ### Agregado
 - Dashboard con balance en tiempo real
