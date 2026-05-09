@@ -244,3 +244,76 @@ if (isError) return <Typography color="error">Error: {error.message}</Typography
 - [ ] Invalidar queries en mutations
 - [ ] Manejar estados isLoading/isError
 - [ ] Probar responsive (móvil + PC)
+
+---
+
+## 9. Protección de Rutas (Auth)
+
+### Patrón: Redirect Inmediato
+
+Para páginas que requieren autenticación, usar redirect a `/login`:
+
+```tsx
+'use client'
+
+import { useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+
+export default function ProtectedPage() {
+  const { status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  if (status === 'loading' || status === 'unauthenticated') {
+    return <Skeleton />
+  }
+
+  return <PageContent />
+}
+```
+
+### Por qué Redirect (vs UI custom)
+
+| Aspecto | Redirect | UI Custom |
+|--------|----------|----------|
+| Seguridad | ✅ Mismo nivel (backend proteje API) | ✅ Mismo nivel |
+| UX | ✅ Consistente | ❌ Inconsistente |
+| Código | ✅ Mínimo | ❌ Más mantener |
+| Mantenimiento | ✅ Un patrón | ❌ Personalizado |
+
+### Sidebar (Items Deshabilitados)
+
+El Sidebar maneja navegación con items deshabilitados:
+
+```tsx
+// items requieren auth
+const needsAuth = item.requiresAuth
+const isDisabled = needsAuth && !isAuthenticated
+
+// UI deshabilitada
+<ListItemButton
+  component={Link}
+  href={isDisabled ? '#' : item.href}
+  onClick={() => handleItemClick(item)}
+  disabled={isDisabled}
+>
+```
+
+### Backend (Protección Real)
+
+La seguridad real está en el backend - las API rechazan requests sin JWT válido:
+
+```python
+# auth.py - get_current_user
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    # Valida JWT o lanza 401
+    # Si no hay token → 401 Unauthorized
+```
+
+No importa qué haga el frontend - el backend siempre proteje los datos.
