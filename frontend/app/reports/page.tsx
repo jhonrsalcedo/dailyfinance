@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/utils/api'
 import {
@@ -14,14 +13,16 @@ import {
   CardContent,
   TextField,
   useTheme,
+  Tooltip as MuiTooltip,
 } from '@mui/material'
+import LockIcon from '@mui/icons-material/Lock'
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -74,20 +75,45 @@ function CustomTooltip({ active, payload, label, currency }: CustomTooltipProps 
 
 export default function ReportsPage() {
   const { status } = useSession()
-  const router = useRouter()
   const theme = useTheme()
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
-  }, [status, router])
-
-  if (status === 'loading' || status === 'unauthenticated') {
+  if (status === 'loading') {
     return <ReportsSkeleton />
   }
 
+  if (status === 'unauthenticated') {
+    return <ReportsDisabledState />
+  }
+
   return <ReportsContent theme={theme} />
+}
+
+function ReportsDisabledState() {
+  return (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ textAlign: 'center', py: 8 }}>
+        <MuiTooltip title="Regístrate para acceder a esta sección" placement="right" arrow>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              opacity: 0.5,
+              cursor: 'not-allowed',
+            }}
+          >
+            <LockIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
+            <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>
+              Reportes Financieros
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              Disponibles para usuarios registrados
+            </Typography>
+          </Box>
+        </MuiTooltip>
+      </Box>
+    </Container>
+  )
 }
 
 function ReportsContent({ theme }: { theme: any }) {
@@ -233,7 +259,7 @@ function ReportsContent({ theme }: { theme: any }) {
                   <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                   <YAxis tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} tick={{ fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip currency={currency} />} />
+                  <RechartsTooltip content={<CustomTooltip currency={currency} />} />
                   <Legend />
                   <Bar dataKey="income" name="Ingresos" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
                   <Bar dataKey="expenses" name="Gastos" fill={theme.palette.error.main} radius={[4, 4, 0, 0]} />
@@ -272,7 +298,7 @@ function ReportsContent({ theme }: { theme: any }) {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                     <Tooltip formatter={(value: number) => formatCurrency(value, currency)} />
+                     <RechartsTooltip formatter={(value: number) => formatCurrency(value, currency)} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
@@ -291,7 +317,7 @@ function ReportsContent({ theme }: { theme: any }) {
                   <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                   <YAxis tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} tick={{ fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip currency={currency} />} />
+                  <RechartsTooltip content={<CustomTooltip currency={currency} />} />
                   <Legend />
                   <Line 
                     type="monotone" 
