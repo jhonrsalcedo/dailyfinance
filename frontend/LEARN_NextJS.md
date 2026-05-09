@@ -244,3 +244,152 @@ if (isError) return <Typography color="error">Error: {error.message}</Typography
 - [ ] Invalidar queries en mutations
 - [ ] Manejar estados isLoading/isError
 - [ ] Probar responsive (móvil + PC)
+
+---
+
+## 9. Protección de Rutas (Auth)
+
+### Patrón: Redirect Inmediato
+
+Para páginas que requieren autenticación, usar redirect a `/login`:
+
+```tsx
+'use client'
+
+import { useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+
+export default function ProtectedPage() {
+  const { status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  if (status === 'loading' || status === 'unauthenticated') {
+    return <Skeleton />
+  }
+
+  return <PageContent />
+}
+```
+
+### Por qué Redirect (vs UI custom)
+
+| Aspecto | Redirect | UI Custom |
+|--------|----------|----------|
+| Seguridad | ✅ Mismo nivel (backend proteje API) | ✅ Mismo nivel |
+| UX | ✅ Consistente | ❌ Inconsistente |
+| Código | ✅ Mínimo | ❌ Más mantener |
+| Mantenimiento | ✅ Un patrón | ❌ Personalizado |
+
+### Sidebar (Items Deshabilitados)
+
+El Sidebar maneja navegación con items deshabilitados:
+
+```tsx
+// items requieren auth
+const needsAuth = item.requiresAuth
+const isDisabled = needsAuth && !isAuthenticated
+
+// UI deshabilitada
+<ListItemButton
+  component={Link}
+  href={isDisabled ? '#' : item.href}
+  onClick={() => handleItemClick(item)}
+  disabled={isDisabled}
+>
+```
+
+### Backend (Protección Real)
+
+La seguridad real está en el backend - las API rechazan requests sin JWT válido:
+
+```python
+# auth.py - get_current_user
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    # Valida JWT o lanza 401
+    # Si no hay token → 401 Unauthorized
+```
+
+No importa qué haga el frontend - el backend siempre proteje los datos.
+
+---
+
+## 10. Regla Estándar: Nueva Sección Protegida
+
+### PARA CADA NUEVA SECCIÓN que requiera autenticación:
+
+**Paso 1: Agregar en Sidebar.tsx**
+```tsx
+// En navItems (líneas 33-45)
+{ label: 'NuevaSección', labelKey: 'nav.nuevaSeccion', icon: <Icon />, href: '/nuevaSeccion', requiresAuth: true },
+```
+
+**Paso 2: Agregar en middleware.ts**
+```tsx
+// En matcher
+matcher: ['/dashboard/:path*', '/settings/:path*', '/transactions/:path*', '/reports/:path*', '/budget/:path*', '/nuevaSeccion/:path*'],
+```
+
+**Paso 3: NO crear código custom en la page**
+- El Sidebar maneja el estado deshabilitado
+- El middleware maneja el redirect por URL
+- El backend maneja la protección real de datos
+
+### Por qué este patrón
+
+| Componente | Responsabilidad |
+|------------|---------------|
+| **Sidebar** | UI deshabilitada + tooltip + click redirect |
+| **middleware** | Redirect por URL directa |
+| **Backend** | Protección real de datos (API) |
+
+### Checklist paraNueva Sección
+
+- [ ] Agregar en navItems del Sidebar con `requiresAuth: true`
+- [ ] Agregar ruta en matcher de middleware.ts
+- [ ] NO modificar la page (no hacer custom UI)
+
+---
+
+## 11. Reglas de Código Limpio
+
+### Imports
+- ✅ Usar desde `utils/api.ts` - NO hardcodear `API_BASE_URL`
+- ✅ NO duplicar imports (verificar antes de importar)
+
+### Patterns Correctos
+```ts
+// ✅ CORRECTO
+import api from '@/utils/api'
+const { data } = await api.get('/endpoint')
+
+// ❌ INCORRECTO
+import axios from 'axios'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const { data } = await axios.get(`${API_BASE_URL}/endpoint`)
+```
+
+### Antes de Commit
+```bash
+# Verificar sin errores
+npm run typecheck
+npm run lint
+npm run test
+
+# Buscar console.log
+grep -r "console.log" --include="*.ts" --include="*.tsx"
+```
+
+### Checklist de Limpieza
+- [ ] Sin `console.log` de debug
+- [ ] Sin imports sin usar
+- [ ] Sin URLs hardcodeadas (usar process.env)
+- [ ] Sin código comentado
+- [ ] TypeScript sin errores (`npm run typecheck`)
+- [ ] ESLint pasa (`npm run lint`)

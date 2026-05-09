@@ -18,9 +18,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-} from '@mui/material'
-import { SettingsSkeleton } from '@/components/skeletons'
-import RequireAuth from '@/components/RequireAuth'
   DialogActions,
   Tabs,
   Tab,
@@ -123,14 +120,6 @@ function CategoryDialog({ open, onClose, category, onSave }: CategoryDialogProps
 }
 
 export default function SettingsPage() {
-  return (
-    <RequireAuth>
-      <SettingsPageContent />
-    </RequireAuth>
-  )
-}
-
-function SettingsPageContent() {
   const theme = useTheme()
   const queryClient = useQueryClient()
   const [tabValue, setTabValue] = useState(0)
@@ -474,13 +463,5 @@ function SettingsPageContent() {
         </Alert>
       </Snackbar>
     </Container>
-  )
-}
-
-export default function SettingsPage() {
-  return (
-    <RequireAuth>
-      <SettingsPageContent />
-    </RequireAuth>
   )
 }

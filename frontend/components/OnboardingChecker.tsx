@@ -3,10 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
+import api from '@/utils/api'
 import { OnboardingModal } from '@/components/OnboardingModal'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export function OnboardingChecker() {
   const { data: session, status } = useSession()
@@ -18,10 +16,7 @@ export function OnboardingChecker() {
   const { data: onboardingStatus } = useQuery<{ onboarding_completed: boolean }>({
     queryKey: ['onboardingStatus'],
     queryFn: async () => {
-      const token = (session as any)?.accessToken
-      const { data } = await axios.get(`${API_BASE_URL}/settings/onboarding-status`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
+      const { data } = await api.get('/settings/onboarding-status')
       return data
     },
     enabled: isAuthenticated && !!session,

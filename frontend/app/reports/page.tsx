@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/utils/api'
 import {
@@ -11,7 +13,9 @@ import {
   Card,
   CardContent,
   TextField,
+  Button,
   useTheme,
+  Tooltip as MuiTooltip,
 } from '@mui/material'
 import {
   BarChart,
@@ -19,7 +23,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -31,7 +35,6 @@ import {
 import { formatCurrency } from '@/utils/currency'
 import { UserSettings } from '@/models'
 import { ReportsSkeleton } from '@/components/skeletons'
-import RequireAuth from '@/components/RequireAuth'
 
 
 
@@ -71,8 +74,64 @@ function CustomTooltip({ active, payload, label, currency }: CustomTooltipProps 
   return null
 }
 
-function ReportsPageContent() {
+export default function ReportsPage() {
+  const { status } = useSession()
+  const router = useRouter()
   const theme = useTheme()
+
+  if (status === 'loading') {
+    return <ReportsSkeleton />
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" fontWeight={700}>
+            Reportes Financieros
+          </Typography>
+        </Box>
+
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card sx={{ border: '1px solid', borderColor: 'divider', opacity: 0.5 }}>
+              <CardContent>
+                <MuiTooltip title="Regístrate para acceder a esta sección" placement="right" arrow>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      py: 8,
+                      cursor: 'not-allowed',
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary' }}>
+                      Disponibles para usuarios registrados
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={() => router.push('/login')}
+                      sx={{
+                        pointerEvents: 'auto',
+                      }}
+                    >
+                      Regístrate para continuar
+                    </Button>
+                  </Box>
+                </MuiTooltip>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Container>
+    )
+  }
+
+  return <ReportsContent theme={theme} />
+}
+
+function ReportsContent({ theme }: { theme: any }) {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7))
 
   const { data: monthlyStats } = useQuery<{ month: string; income: number; expenses: number; balance: number }>({
@@ -215,7 +274,7 @@ function ReportsPageContent() {
                   <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                   <YAxis tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} tick={{ fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip currency={currency} />} />
+                  <RechartsTooltip content={<CustomTooltip currency={currency} />} />
                   <Legend />
                   <Bar dataKey="income" name="Ingresos" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
                   <Bar dataKey="expenses" name="Gastos" fill={theme.palette.error.main} radius={[4, 4, 0, 0]} />
@@ -254,7 +313,7 @@ function ReportsPageContent() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                     <Tooltip formatter={(value: number) => formatCurrency(value, currency)} />
+                     <RechartsTooltip formatter={(value: number) => formatCurrency(value, currency)} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
@@ -273,7 +332,7 @@ function ReportsPageContent() {
                   <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                   <YAxis tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} tick={{ fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip currency={currency} />} />
+                  <RechartsTooltip content={<CustomTooltip currency={currency} />} />
                   <Legend />
                   <Line 
                     type="monotone" 
@@ -290,13 +349,5 @@ function ReportsPageContent() {
         </Grid>
       </Grid>
     </Container>
-  )
-}
-
-export default function ReportsPage() {
-  return (
-    <RequireAuth>
-      <ReportsPageContent />
-    </RequireAuth>
   )
 }

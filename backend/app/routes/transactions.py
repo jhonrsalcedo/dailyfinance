@@ -9,7 +9,6 @@ import io
 from app.database import engine, Transaction, Category, PaymentMethod, User
 from app.schemas import TransactionCreate, TransactionRead, TransactionUpdate
 from app.routes.auth import get_current_user
-from app.database import User
 
 router = APIRouter()
 
