@@ -166,8 +166,16 @@ export default function Dashboard() {
             Monitorea tus finanzas {isAuthenticated ? 'en tiempo real' : '(Demo)'}
           </Typography>
         </Box>
-
-        {isAuthenticated && <TransactionForm />}
+        {!isAuthenticated && (
+          <Button
+            variant="contained"
+            startIcon={<LoginIcon />}
+            href="/login"
+            size="small"
+          >
+            Iniciar Sesión
+          </Button>
+        )}
       </Box>
 
       {!isAuthenticated && (

@@ -31,7 +31,6 @@ import {
 import { formatCurrency } from '@/utils/currency'
 import { UserSettings } from '@/models'
 import { ReportsSkeleton } from '@/components/skeletons'
-import RequireAuth from '@/components/RequireAuth'
 
 
 
@@ -71,7 +70,7 @@ function CustomTooltip({ active, payload, label, currency }: CustomTooltipProps 
   return null
 }
 
-function ReportsPageContent() {
+export default function ReportsPage() {
   const theme = useTheme()
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7))
 
@@ -290,13 +289,5 @@ function ReportsPageContent() {
         </Grid>
       </Grid>
     </Container>
-  )
-}
-
-export default function ReportsPage() {
-  return (
-    <RequireAuth>
-      <ReportsPageContent />
-    </RequireAuth>
   )
 }

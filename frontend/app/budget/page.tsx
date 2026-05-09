@@ -39,7 +39,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { formatCurrency } from '@/utils/currency'
 import { Category, UserSettings } from '@/models'
 import { BudgetSkeleton } from '@/components/skeletons'
-import RequireAuth from '@/components/RequireAuth'
+
+
 
 interface BudgetData {
   id: number
@@ -52,14 +53,6 @@ interface BudgetData {
 }
 
 export default function BudgetPage() {
-  return (
-    <RequireAuth>
-      <BudgetPageContent />
-    </RequireAuth>
-  )
-}
-
-function BudgetPageContent() {
   const theme = useTheme()
   const queryClient = useQueryClient()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -454,13 +447,5 @@ function BudgetPageContent() {
         </DialogActions>
       </Dialog>
     </Container>
-  )
-}
-
-export default function BudgetPage() {
-  return (
-    <RequireAuth>
-      <BudgetPageContent />
-    </RequireAuth>
   )
 }
