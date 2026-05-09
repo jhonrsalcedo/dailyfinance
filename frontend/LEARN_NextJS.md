@@ -317,3 +317,40 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 ```
 
 No importa qué haga el frontend - el backend siempre proteje los datos.
+
+---
+
+## 10. Regla Estándar: Nueva Sección Protegida
+
+### PARA CADA NUEVA SECCIÓN que requiera autenticación:
+
+**Paso 1: Agregar en Sidebar.tsx**
+```tsx
+// En navItems (líneas 33-45)
+{ label: 'NuevaSección', labelKey: 'nav.nuevaSeccion', icon: <Icon />, href: '/nuevaSeccion', requiresAuth: true },
+```
+
+**Paso 2: Agregar en middleware.ts**
+```tsx
+// En matcher
+matcher: ['/dashboard/:path*', '/settings/:path*', '/transactions/:path*', '/reports/:path*', '/budget/:path*', '/nuevaSeccion/:path*'],
+```
+
+**Paso 3: NO crear código custom en la page**
+- El Sidebar maneja el estado deshabilitado
+- El middleware maneja el redirect por URL
+- El backend maneja la protección real de datos
+
+### Por qué este patrón
+
+| Componente | Responsabilidad |
+|------------|---------------|
+| **Sidebar** | UI deshabilitada + tooltip + click redirect |
+| **middleware** | Redirect por URL directa |
+| **Backend** | Protección real de datos (API) |
+
+### Checklist paraNueva Sección
+
+- [ ] Agregar en navItems del Sidebar con `requiresAuth: true`
+- [ ] Agregar ruta en matcher de middleware.ts
+- [ ] NO modificar la page (no hacer custom UI)
