@@ -70,3 +70,28 @@ npx husky install  # Opcional, prepare script lo hace automático
 - LEARN_Docker.md - Comandos Docker
 - LEARN_CICD.md - Guía de GitHub Actions y CI/CD
 - DEVELOPMENT_GUIDE.md - Sección 7: Git Workflow con Checks
+
+## Deployment a Producción
+
+### Flujo Estándar
+1. Trabajar en `develop`
+2. Verificar (`npm run check` + tests)
+3. Push a `develop`
+4. **PREGUNTAR**: "¿Listo para enviar a producción?"
+5. Si usuario confirma → merge + tag + push
+
+### Regla: Siempre Preguntar
+> Después de push exitoso a develop, SIEMPRE preguntar antes de hacer merge a main.
+
+### Pasos Post-Confirmación
+```bash
+git checkout main
+git merge develop
+git tag -a v1.0.0 -m "Release 1.0.0"
+git push origin main --tags
+```
+
+### Checklist Pre-Production
+- [ ] Frontend checks pasan (lint + typecheck + test)
+- [ ] Backend checks pasan (pytest)
+- [ ] Usuario confirmou → proceder
