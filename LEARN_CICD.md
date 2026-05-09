@@ -265,6 +265,73 @@ npm install package@latest
 
 ---
 
+## 12. Seguridad: Defense in Depth
+
+### Capas de Seguridad Implementadas
+
+| Capa | Qué hace | Implementación |
+|------|----------|----------------|
+| **1. Env Vars** | No hardcodear credenciales | `os.environ.get()` |
+| **2. Fail Fast** | Bloquear si falta en prod | `IS_PRODUCTION and not key → raise` |
+| **3. Rate Limiting** | Previene ataques fuerza bruta | `slowapi` (5/min login) |
+| **4. Logging** | Auditoría | Intentos fallidos |
+| **5. CORS** | Restringir métodos | Solo GET/POST/PUT/DELETE |
+
+### Rate Limiting (slowapi)
+
+```python
+# requirements.txt
+slowapi
+
+# main.py
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+# auth.py endpoints
+@router.post("/login")
+@limiter.limit("5/minute")
+def login(request: Request, ...):
+    ...
+```
+
+### Límites Recomendados
+
+| Endpoint | Límite | Razón |
+|----------|--------|-------|
+| `/login` | 5/min | Previene fuerza bruta |
+| `/register` | 3/min | Previene spam |
+| `/forgot-password` | 3/min | Previene abuso |
+
+### Logging de Auditoría
+
+```python
+import logging
+logger = logging.getLogger(__name__)
+
+# En endpoints de auth
+if login failed:
+    logger.warning(f"Failed login attempt for email: {email}")
+else:
+    logger.info(f"User logged in: {email}")
+```
+
+### CORS restrictivo
+
+```python
+# ❌ Inseguro
+allow_methods=["*"]
+allow_headers=["*"]
+
+# ✅ Seguro
+allow_methods=["GET", "POST", "PUT", "DELETE"]
+allow_headers=["Authorization", "Content-Type"]
+```
+
+---
+
 ## Recursos
 - [Husky Docs](https://typicode.github.io/husky/)
 - [lint-staged Docs](https://github.com/lint-staged/lint-staged)

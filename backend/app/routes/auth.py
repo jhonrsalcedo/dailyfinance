@@ -1,9 +1,10 @@
 import os
 import re
+import logging
 from datetime import datetime, timedelta
 from typing import Optional, Annotated
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -12,9 +13,12 @@ from sqlmodel import Session, select
 
 from app.config import engine, get_db_session, IS_PRODUCTION
 from app.database import User, UserSettings
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter()
 SECRET_KEY = os.environ.get("JWT_SECRET") or os.environ.get("SECRET_KEY")
@@ -24,6 +28,8 @@ if not SECRET_KEY:
     SECRET_KEY = "dev-secret-key-not-for-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
+
+logger = logging.getLogger(__name__)
 
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
@@ -125,7 +131,8 @@ class LoginRequest(BaseModel):
     password: str
 
 @router.post("/register", response_model=UserResponse)
-def register(user_data: UserCreate, session: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def register(request: Request, user_data: UserCreate, session: Session = Depends(get_db)):
     existing = session.exec(select(User).where(User.email == user_data.email)).first()
     if existing:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
@@ -157,11 +164,14 @@ def register(user_data: UserCreate, session: Session = Depends(get_db)):
     return new_user
 
 @router.post("/login", response_model=TokenResponse)
-def login(login_data: LoginRequest, session: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, login_data: LoginRequest, session: Session = Depends(get_db)):
     user = session.exec(select(User).where(User.email == login_data.email)).first()
     if not user or not verify_password(login_data.password, user.password_hash):
+        logger.warning(f"Failed login attempt for email: {login_data.email}")
         raise HTTPException(status_code=401, detail="Email o password incorrecto")
 
+    logger.info(f"User logged in: {user.email}")
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 

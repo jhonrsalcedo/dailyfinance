@@ -6,6 +6,9 @@ from fastapi.exceptions import RequestValidationError
 from sqlmodel import SQLModel
 from sqlalchemy.exc import IntegrityError
 from contextlib import asynccontextmanager
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from app.config import engine, create_db_and_tables
 from app.seed import seed_database
 from app.routes.auth import router as auth_router
@@ -19,6 +22,8 @@ from app.routes.stats import router as stats_router
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+limiter = Limiter(key_func=get_remote_address)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Inicializando base de datos...")
@@ -28,6 +33,18 @@ async def lifespan(app: FastAPI):
     print("Apagando servicios...")
 
 app = FastAPI(lifespan=lifespan)
+
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": "Demasiadas solicitudes. Intenta de nuevo más tarde.",
+            "retry_after": exc.detail,
+        },
+    )
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -82,8 +99,8 @@ app.add_middleware(
         "https://dailyfinance-web.vercel.app",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.include_router(auth_router, prefix="/api/v1/auth")

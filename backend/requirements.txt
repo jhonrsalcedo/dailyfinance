@@ -13,3 +13,4 @@ pytest-asyncio
 httpx
 requests
 psycopg2-binary
+slowapi
