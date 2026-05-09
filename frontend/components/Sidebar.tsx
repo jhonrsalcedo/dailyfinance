@@ -39,7 +39,7 @@ const navItems: Array<{
 }> = [
   { label: 'Panel', labelKey: 'nav.dashboard', icon: <DashboardIcon />, href: '/' },
   { label: 'Transacciones', labelKey: 'nav.transactions', icon: <ReceiptIcon />, href: '/transactions', requiresAuth: true },
-  { label: 'Reportes', labelKey: 'nav.reports', icon: <BarChartIcon />, href: '/reports' },
+  { label: 'Reportes', labelKey: 'nav.reports', icon: <BarChartIcon />, href: '/reports', requiresAuth: true },
   { label: 'Presupuesto', labelKey: 'nav.budget', icon: <AccountBalanceWalletIcon />, href: '/budget', requiresAuth: true },
   { label: 'Configuración', labelKey: 'nav.settings', icon: <SettingsIcon />, href: '/settings', requiresAuth: true },
 ]
