@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/utils/api'
 import {
@@ -12,10 +13,10 @@ import {
   Card,
   CardContent,
   TextField,
+  Button,
   useTheme,
   Tooltip as MuiTooltip,
 } from '@mui/material'
-import LockIcon from '@mui/icons-material/Lock'
 import {
   BarChart,
   Bar,
@@ -75,6 +76,7 @@ function CustomTooltip({ active, payload, label, currency }: CustomTooltipProps 
 
 export default function ReportsPage() {
   const { status } = useSession()
+  const router = useRouter()
   const theme = useTheme()
 
   if (status === 'loading') {
@@ -82,38 +84,51 @@ export default function ReportsPage() {
   }
 
   if (status === 'unauthenticated') {
-    return <ReportsDisabledState />
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" fontWeight={700}>
+            Reportes Financieros
+          </Typography>
+        </Box>
+
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card sx={{ border: '1px solid', borderColor: 'divider', opacity: 0.5 }}>
+              <CardContent>
+                <MuiTooltip title="Regístrate para acceder a esta sección" placement="right" arrow>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      py: 8,
+                      cursor: 'not-allowed',
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary' }}>
+                      Disponibles para usuarios registrados
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={() => router.push('/login')}
+                      sx={{
+                        pointerEvents: 'auto',
+                      }}
+                    >
+                      Regístrate para continuar
+                    </Button>
+                  </Box>
+                </MuiTooltip>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Container>
+    )
   }
 
   return <ReportsContent theme={theme} />
-}
-
-function ReportsDisabledState() {
-  return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ textAlign: 'center', py: 8 }}>
-        <MuiTooltip title="Regístrate para acceder a esta sección" placement="right" arrow>
-          <Box
-            sx={{
-              display: 'inline-flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              opacity: 0.5,
-              cursor: 'not-allowed',
-            }}
-          >
-            <LockIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
-            <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>
-              Reportes Financieros
-            </Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Disponibles para usuarios registrados
-            </Typography>
-          </Box>
-        </MuiTooltip>
-      </Box>
-    </Container>
-  )
 }
 
 function ReportsContent({ theme }: { theme: any }) {
