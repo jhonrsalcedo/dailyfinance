@@ -56,7 +56,7 @@ interface BudgetData {
 export default function BudgetPage() {
   const theme = useTheme()
   const queryClient = useQueryClient()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [openDialog, setOpenDialog] = useState(false)
   const [editingBudget, setEditingBudget] = useState<BudgetData | null>(null)
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7))
