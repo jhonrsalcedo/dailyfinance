@@ -37,6 +37,8 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { formatCurrency } from '@/utils/currency'
+import { useSnackbar } from '@/hooks/useSnackbar'
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { Category, UserSettings } from '@/models'
 import { BudgetSkeleton } from '@/components/skeletons'
 import BudgetSummary from './components/BudgetSummary'
@@ -57,11 +59,17 @@ export default function BudgetPage() {
   const theme = useTheme()
   const queryClient = useQueryClient()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const showSnackbar = useSnackbar()
   const [openDialog, setOpenDialog] = useState(false)
   const [editingBudget, setEditingBudget] = useState<BudgetData | null>(null)
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7))
 
   const [formData, setFormData] = useState({ category_id: '', limit_amount: '' })
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: number | null; name: string }>({
+    open: false,
+    id: null,
+    name: '',
+  })
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ['categories'],
@@ -89,7 +97,11 @@ export default function BudgetPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] })
+      showSnackbar.show('Límite creado exitosamente', 'success')
       handleCloseDialog()
+    },
+    onError: () => {
+      showSnackbar.show('Error al crear el límite', 'error')
     },
   })
 
@@ -100,7 +112,11 @@ export default function BudgetPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] })
+      showSnackbar.show('Límite actualizado', 'success')
       handleCloseDialog()
+    },
+    onError: () => {
+      showSnackbar.show('Error al actualizar el límite', 'error')
     },
   })
 
@@ -110,6 +126,10 @@ export default function BudgetPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] })
+      showSnackbar.show('Límite eliminado', 'success')
+    },
+    onError: () => {
+      showSnackbar.show('Error al eliminar el límite', 'error')
     },
   })
 
@@ -280,7 +300,10 @@ export default function BudgetPage() {
                         <IconButton size="small" color="primary" onClick={() => handleOpenDialog(budget)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" color="error" onClick={() => deleteMutation.mutate(budget.id)}>
+                        <IconButton size="small" color="error" onClick={() => {
+                            const categoryName = categoriesMap[budget.category_id] || 'esta categoría'
+                            setDeleteConfirm({ open: true, id: budget.id, name: categoryName })
+                          }}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -332,7 +355,10 @@ export default function BudgetPage() {
                           <IconButton size="small" color="primary" onClick={() => handleOpenDialog(budget)}>
                             <EditIcon fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" color="error" onClick={() => deleteMutation.mutate(budget.id)}>
+                          <IconButton size="small" color="error" onClick={() => {
+                            const categoryName = categoriesMap[budget.category_id] || 'esta categoría'
+                            setDeleteConfirm({ open: true, id: budget.id, name: categoryName })
+                          }}>
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Box>
@@ -407,6 +433,15 @@ export default function BudgetPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <DeleteConfirmDialog
+        open={deleteConfirm.open}
+        title="Eliminar Límite"
+        message={`¿Estás seguro de que quieres eliminar el límite de "${deleteConfirm.name}"? Esta acción no se puede deshacer.`}
+        onConfirm={() => deleteMutation.mutate(deleteConfirm.id!)}
+        onCancel={() => setDeleteConfirm({ open: false, id: null, name: '' })}
+        isLoading={deleteMutation.isPending}
+      />
     </Container>
   )
 }

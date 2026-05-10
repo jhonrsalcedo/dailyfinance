@@ -23,8 +23,6 @@ import {
   Tab,
   alpha,
   useTheme,
-  Snackbar,
-  Alert,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
@@ -40,6 +38,8 @@ import { UserProfile } from '@/components/UserProfile'
 import { IconPicker, getMUIcon } from '@/components/IconPicker'
 import { OnboardingModal } from '@/components/OnboardingModal'
 import { SettingsSkeleton } from '@/components/skeletons'
+import { useSnackbar } from '@/hooks/useSnackbar'
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import api from '@/utils/api'
 
 interface Category {
@@ -122,6 +122,7 @@ function CategoryDialog({ open, onClose, category, onSave }: CategoryDialogProps
 export default function SettingsPage() {
   const theme = useTheme()
   const queryClient = useQueryClient()
+  const showSnackbar = useSnackbar()
   const [tabValue, setTabValue] = useState(0)
   const [salary, setSalary] = useState<string>('')
   const [categoryList, setCategoryList] = useState<Category[]>([])
@@ -130,15 +131,13 @@ export default function SettingsPage() {
     open: false,
     category: null,
   })
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: number | null; name: string }>({
     open: false,
-    message: '',
-    severity: 'success',
+    id: null,
+    name: '',
   })
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [saveMessage, setSaveMessage] = useState('')
 
-   const { data: settings, isLoading: settingsLoading } = useQuery<UserSettings>({
+  const { data: settings, isLoading: settingsLoading } = useQuery<UserSettings>({
     queryKey: ['settings'],
     queryFn: async () => {
       const { data } = await api.get<UserSettings>('/settings')
@@ -178,18 +177,13 @@ export default function SettingsPage() {
     mutationFn: async (newSalary: number) => {
       await api.post('/settings', { salary: newSalary })
     },
-    onSuccess: (_, newSalary) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] })
-      setSaveStatus('success')
-       setSaveMessage(`Salario de ${formatCurrency(newSalary as number, settings?.currency || 'COP')} guardado correctamente`)
-      setSnackbar({ open: true, message: 'Salario guardado exitosamente', severity: 'success' })
-      setTimeout(() => setSaveStatus('idle'), 5000)
+      showSnackbar.show('Salario guardado exitosamente', 'success')
     },
     onError: (error: any) => {
-      setSaveStatus('error')
       const message = error?.response?.data?.detail || 'Error al guardar el salario'
-      setSaveMessage(`Error: ${message}`)
-      setSnackbar({ open: true, message, severity: 'error' })
+      showSnackbar.show(message, 'error')
     },
   })
 
@@ -211,20 +205,26 @@ export default function SettingsPage() {
     setCategoryDialog({ open: false, category: null })
   }
 
-  const handleCategoryDelete = async (id: number) => {
+  const handleCategoryDelete = (id: number) => {
     if (id <= 10) {
-      alert('No puedes eliminar las categorías por defecto')
+      showSnackbar.show('No puedes eliminar las categorías por defecto', 'error')
       return
     }
-    if (!confirm('¿Estás seguro de que quieres eliminar esta categoría?')) {
-      return
-    }
+    const category = categoryList.find(c => c.id === id)
+    setDeleteConfirm({ open: true, id, name: category?.name || '' })
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm.id) return
     try {
-      await api.delete(`/categories/${id}`)
-      setCategoryList(categoryList.filter(c => c.id !== id))
+      await api.delete(`/categories/${deleteConfirm.id}`)
+      setCategoryList(categoryList.filter(c => c.id !== deleteConfirm.id))
+      showSnackbar.show('Categoría eliminada', 'success')
     } catch (error: unknown) {
       const err = error as { response?: { data?: { detail?: string } } }
-      alert(err.response?.data?.detail || 'Error al eliminar la categoría')
+      showSnackbar.show(err.response?.data?.detail || 'Error al eliminar la categoría', 'error')
+    } finally {
+      setDeleteConfirm({ open: false, id: null, name: '' })
     }
   }
 
@@ -401,15 +401,6 @@ export default function SettingsPage() {
                     </Typography>
                   )}
                 </Box>
-                {saveStatus !== 'idle' && (
-                  <Alert 
-                    severity={saveStatus} 
-                    sx={{ mt: 2, alignItems: 'center' }}
-                    onClose={() => setSaveStatus('idle')}
-                  >
-                    {saveMessage}
-                  </Alert>
-                )}
                 {settings?.salary && (
                   <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2 }}>
                      Último salario guardado: {formatCurrency(settings.salary, settings?.currency || 'COP')}
@@ -448,20 +439,13 @@ export default function SettingsPage() {
         onSave={handleCategorySave}
       />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <DeleteConfirmDialog
+        open={deleteConfirm.open}
+        title="Eliminar Categoría"
+        message={`¿Estás seguro de que quieres eliminar la categoría "${deleteConfirm.name}"? Esta acción no se puede deshacer.`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteConfirm({ open: false, id: null, name: '' })}
+      />
     </Container>
   )
 }
