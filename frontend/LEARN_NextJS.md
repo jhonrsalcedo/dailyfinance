@@ -500,3 +500,77 @@ backend/app/routes/
 |------|--------|---------|
 | **Frontend** | Page + Components | Cuando page > 400 líneas |
 | **Backend** | Mantener (route por archivo) | Siempre |
+
+## 23. Gestor de Paquetes: npm vs pnpm
+
+### Comparación
+
+| Gestor | Velocidad | Espacio | Recomendación |
+|--------|-----------|---------|----------------|
+| **npm** | Medio | Grande | Proyectos pequeños |
+| **pnpm** | Rápido | Pequeno (hard links) | Proyectos grandes/monorepo |
+| **yarn** | Rápido | Medio | Alternativa a npm |
+
+### Migración de npm a pnpm
+
+#### Pasos para Migrar
+
+```bash
+# 1. Instalar pnpm globalmente
+npm install -g pnpm
+
+# 2. En la carpeta del proyecto (frontend)
+cd frontend
+
+# 3. Eliminar node_modules y package-lock.json
+rm -rf node_modules
+rm package-lock.json
+
+# 4. Instalar con pnpm
+pnpm install
+
+# 5. Probar que funciona
+pnpm run dev
+pnpm run build
+pnpm run typecheck
+pnpm run test
+```
+
+#### Si falla el rollback
+
+```bash
+# Volver a npm es simple
+rm -rf node_modules pnpm-lock.yaml
+npm install
+```
+
+#### Actualizar CI/CD (GitHub Actions)
+
+```yaml
+# En .github/workflows/...
+- name: Install dependencies
+  run: pnpm install --frozen-lockfile
+```
+
+#### Scripts actualizados
+
+| Antes (npm) | Después (pnpm) |
+|-------------|----------------|
+| `npm install` | `pnpm install` |
+| `npm run dev` | `pnpm run dev` |
+| `npm run build` | `pnpm run build` |
+| `npm test` | `pnpm test` |
+
+### Cuándo usar pnpm
+
+| Escenario | Recomendación |
+|-----------|---------------|
+| Proyecto nuevo pequeño | npm (está bien) |
+| Proyecto nuevo grande | pnpm |
+| Monorepo | pnpm obligatorio |
+| E-commerce | pnpm |
+| daily finance app existente | npm (no necesario cambiar) |
+
+### Nota sobre este proyecto
+
+**El proyecto actual funciona bien con npm.** El cambio a pnpm es opcional y no provide beneficios significativos para un proyecto de este tamaño. |
