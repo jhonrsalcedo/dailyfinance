@@ -39,6 +39,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
 import { formatCurrency } from '@/utils/currency'
+import { useSnackbar } from '@/hooks/useSnackbar'
 import { Transaction, Category, PaymentMethod, UserSettings } from '@/models'
 import { TransactionsSkeleton } from '@/components/skeletons'
 import TransactionForm from '@/components/TransactionForm'
@@ -64,6 +65,7 @@ export default function TransactionsPage() {
   const theme = useTheme()
   const queryClient = useQueryClient()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const showSnackbar = useSnackbar()
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 5 : 10)
   const [searchTerm, setSearchTerm] = useState('')
@@ -117,6 +119,10 @@ export default function TransactionsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       queryClient.invalidateQueries({ queryKey: ['financeStats'] })
+      showSnackbar.show('Transacción eliminada', 'success')
+    },
+    onError: () => {
+      showSnackbar.show('Error al eliminar la transacción', 'error')
     },
   })
 
