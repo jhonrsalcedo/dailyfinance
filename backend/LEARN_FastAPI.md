@@ -11,8 +11,31 @@ make run       # uvicorn main:app --reload
 
 ## 2. Conexión a DB
 
-- **SQLite Local:** `Path(__file__).parent.parent.parent / "db" / "dailyfinance.db"`
-- **Postgres (Docker):** Variable `DATABASE_URL` en entorno
+La configuración de base de datos está en `app/config.py`:
+
+### Variables de Entorno
+
+| Variable | Desarrollo | Producción |
+|----------|-----------|-------------|
+| `DATABASE_URL` | (vacío → SQLite) | `libsql://...` (Turso) |
+| `TURSO_AUTH_TOKEN` | N/A | Token de Turso |
+| `ENVIRONMENT` | development | production |
+
+### Lógica de Conexión
+
+```python
+def get_database_url() -> str:
+    return os.getenv("DATABASE_URL", "")  # Si vacío → SQLite local
+
+# development → db/dailyfinance.db (SQLite)
+# production → Turso libSQL
+```
+
+### Seguridad
+
+- ✅ `.env` y `.env.local` están en `.gitignore`
+- ✅ Nunca commitear archivos con secrets
+- ✅ Usar `.env.example` como plantilla
 
 ## 3. Modelos y Schemas
 
