@@ -161,3 +161,55 @@ sx={{
 <SwipeableDrawer variant="temporary" />
 <Drawer variant="permanent" />
 ```
+
+### Tabla desaparece en tablet (iPad Air)
+**Problema**: Breakpoint incorrecto + isMobile no cubre tablet.
+
+**Regla Estándar**:
+| Elemento | Breakpoint | Descripción |
+|----------|-----------|-------------|
+| Tabla | `md: 'block'` (900px+) | Muestra tabla en tablets landscape + desktop |
+| isMobile | `down('md')` | Cards en móvil (0-899px) |
+
+```tsx
+// ❌ INCORRECTO
+const isMobile = useMediaQuery(theme.breakpoints.down('sm'))  // solo 0-599px
+sx={{ display: { xs: 'none', lg: 'block' } }}  // tabla solo en 1200px+
+
+// ✅ CORRECTO
+const isMobile = useMediaQuery(theme.breakpoints.down('md'))  // 0-899px = móvil + tablet
+sx={{ display: { xs: 'none', md: 'block' } }}  // tabla en 900px+ (tablet landscape + desktop)
+```
+
+## Hook useDeviceType (Recomendado)
+
+Para detección más precisa:
+
+```tsx
+// hooks/useDeviceType.ts
+import { useTheme, useMediaQuery } from '@mui/material'
+
+type DeviceType = 'mobile' | 'tablet' | 'desktop'
+
+export function useDeviceType() {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'))
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
+  return { isMobile, isTablet, isDesktop }
+}
+
+// Uso
+const { isMobile, isTablet } = useDeviceType()
+
+{isMobile ? <Cards /> : <Table />}
+```
+
+## Cobertura de Dispositivos
+
+| Breakpoint | Rango | Dispositivo | Tabla | Cards |
+|-----------|-------|------------|-------|-------|
+| xs | 0-599px | Teléfono | ❌ | ✅ isMobile |
+| sm | 600-899px | iPad mini, tablet | ❌ | ✅ isMobile |
+| md | 900-1199px | **iPad Air** | ✅ | ❌ |
+| lg | 1200px+ | Laptop/Desktop | ✅ | ❌ |

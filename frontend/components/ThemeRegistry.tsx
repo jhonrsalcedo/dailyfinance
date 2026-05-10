@@ -74,6 +74,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
               minHeight: '100vh',
               bgcolor: 'background.default',
               pt: { xs: 2, md: 3 },
+              pb: { xs: 6, md: 3 },
               px: { xs: 2, md: 3 },
               transition: 'padding 0.3s ease',
             }}

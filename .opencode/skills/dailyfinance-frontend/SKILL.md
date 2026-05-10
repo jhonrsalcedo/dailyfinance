@@ -93,3 +93,55 @@ npm run test     # tests
   - git merge develop
   - git tag -a v1.0.0 -m "Release 1.0.0"
   - git push origin main --tags
+
+---
+
+## Responsive Tables (Regla Estándar)
+
+### Problema Común
+Cuando una tabla desaparece en tablet (iPad Air), revisar breakpoints.
+
+**Regla Estándar**:
+| Elemento | Breakpoint | Descripción |
+|----------|-----------|-------------|
+| Tabla | `md: 'block'` (900px+) | Muestra tabla en tablets landscape + desktop |
+| isMobile | `down('md')` | Cards en móvil + tablet (0-899px) |
+
+```typescript
+// ❌ INCORRECTO
+const isMobile = useMediaQuery(theme.breakpoints.down('sm'))  // solo 0-599px
+sx={{ display: { xs: 'none', lg: 'block' } }}  // tabla solo en 1200px+
+
+// ✅ CORRECTO
+const isMobile = useMediaQuery(theme.breakpoints.down('md'))  // 0-899px = móvil + tablet
+sx={{ display: { xs: 'none', md: 'block' } }}  // tabla en 900px+ (tablet landscape + desktop)
+```
+
+### Breakpoints MUI
+| Breakpoint | Rango | Dispositivo |
+|-----------|-------|------------|
+| xs | 0-599px | Teléfono |
+| sm | 600-899px | iPad mini, tablet pequeña |
+| md | 900-1199px | **iPad Air**, tablet |
+| lg | 1200px+ | Laptop/Desktop |
+
+### Hook Recomendado: useDeviceType
+```typescript
+// hooks/useDeviceType.ts
+import { useTheme, useMediaQuery } from '@mui/material'
+
+export function useDeviceType() {
+  const theme = useTheme()
+  return {
+    isMobile: useMediaQuery(theme.breakpoints.down('sm')),
+    isTablet: useMediaQuery(theme.breakpoints.between('sm', 'md')),
+    isDesktop: useMediaQuery(theme.breakpoints.up('md')),
+  }
+}
+```
+
+### Checklist Responsive
+- [ ] Tabla visible en iPad Air (900px+)
+- [ ] Cards visibles en móvil (isMobile con down('md'))
+- [ ] Buscar `display:.*xs:.*none` antes de commit
+- [ ] Probar en DevTools con resolución de tablet

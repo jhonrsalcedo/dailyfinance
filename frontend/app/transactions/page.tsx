@@ -63,7 +63,7 @@ function getCategoryColor(_id: number | null): string {
 export default function TransactionsPage() {
   const theme = useTheme()
   const queryClient = useQueryClient()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 5 : 10)
   const [searchTerm, setSearchTerm] = useState('')
