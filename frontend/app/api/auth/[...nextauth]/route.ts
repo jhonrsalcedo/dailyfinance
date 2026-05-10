@@ -49,7 +49,6 @@ const handler = NextAuth({
             accessToken: data.access_token,
           }
         } catch (error) {
-          console.error('Auth error:', error)
           return null
         }
       }

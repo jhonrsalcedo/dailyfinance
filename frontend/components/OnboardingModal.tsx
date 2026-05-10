@@ -42,7 +42,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
       try {
         await api.post('/settings', { salary: parseFloat(salary) })
       } catch (error) {
-        console.error('Error saving salary:', error)
+        // Silent fail - salary is optional
       }
     }
     setActiveStep(0)
