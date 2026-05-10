@@ -442,3 +442,61 @@ git push origin main --tags
 - [ ] `npm run test` pasa
 - [ ] `pytest` pasa (backend)
 - [ ] Usuario confirmó → proceder
+
+---
+
+## 13. Patrón de Arquitectura
+
+### Frontend: Page + Components
+
+**Cuándo aplicar:**
+- Cuando una page tiene más de 300-400 líneas
+- Cuando hay secciones UI repetitivas (como summary cards)
+
+**Estructura:**
+```
+app/
+├── transactions/
+│   ├── page.tsx              # Lógica de página + state
+│   └── components/
+│       ├── TransactionSummary.tsx
+│       └── TransactionList.tsx
+├── budget/
+│   ├── page.tsx
+│   └── components/
+│       └── BudgetSummary.tsx
+```
+
+**Qué extraer:**
+- ✅ Summary cards (tarjetas de total)
+- ✅ Listas repetitivas
+- ✅ Forms complejos
+
+**Qué NO extraer:**
+- ❌ Hooks de datos (useQuery/useMutation)
+- ❌ Lógica de validación
+- ❌ Estado de la página
+
+### Backend: Mantener como está
+
+**Por qué no refactorizar:**
+- FastAPI ya organiza por rutas (`/routes/*.py`)
+- Cada endpoint es autocontained
+- SQLModel ya simplifica el acceso a DB
+- No hay UI reutilizable interna
+
+**Patrón actual:**
+```
+backend/app/routes/
+├── transactions.py    # CRUD completo (150-200 líneas)
+├── auth.py           # Autenticación
+├── settings.py       # Configuración
+└── ...
+```
+
+### Resumen
+
+| Capa | Patrón | Aplicar |
+|------|--------|---------|
+| **Frontend** | Page + Components | Cuando page > 400 líneas |
+| **Backend** | Mantener (route por archivo) | Siempre |

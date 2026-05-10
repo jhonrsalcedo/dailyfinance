@@ -63,8 +63,8 @@ export default function LoginPage() {
     return confirmPassword.length === 0 || password === confirmPassword
   }, [password, confirmPassword])
 
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
   const isEmailValid = useMemo(() => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     return emailRegex.test(email)
   }, [email])
 

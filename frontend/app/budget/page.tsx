@@ -39,6 +39,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { formatCurrency } from '@/utils/currency'
 import { Category, UserSettings } from '@/models'
 import { BudgetSkeleton } from '@/components/skeletons'
+import BudgetSummary from './components/BudgetSummary'
 
 
 
@@ -184,54 +185,14 @@ export default function BudgetPage() {
           size="small"
           sx={{ width: 150 }}
         />
-      </Box>
+</Box>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={4}>
-          <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
-            <CardContent>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
-                Presupuesto Total
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                 {formatCurrency(totalBudget, currency)}
-               </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <Card sx={{ 
-            border: '1px solid', 
-            borderColor: 'divider',
-            background: alpha(theme.palette.error.main, 0.04),
-          }}>
-            <CardContent>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
-                Gastado
-              </Typography>
-              <Typography variant="h5" sx={{ color: 'error.main', fontWeight: 700 }}>
-                 {formatCurrency(totalSpent, currency)}
-               </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <Card sx={{ 
-            border: '1px solid', 
-            borderColor: 'divider',
-            background: alpha(theme.palette.success.main, 0.04),
-          }}>
-            <CardContent>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
-                Restante
-              </Typography>
-              <Typography variant="h5" sx={{ color: 'success.main', fontWeight: 700 }}>
-                 {formatCurrency(remaining, currency)}
-               </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      <BudgetSummary
+        totalBudget={totalBudget}
+        totalSpent={totalSpent}
+        remaining={remaining}
+        currency={currency}
+      />
 
       <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
         <CardContent>

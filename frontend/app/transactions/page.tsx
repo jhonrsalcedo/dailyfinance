@@ -23,7 +23,6 @@ import {
   Select,
   FormControl,
   InputLabel,
-  Grid,
   alpha,
   useTheme,
   Button,
@@ -43,6 +42,7 @@ import { formatCurrency } from '@/utils/currency'
 import { Transaction, Category, PaymentMethod, UserSettings } from '@/models'
 import { TransactionsSkeleton } from '@/components/skeletons'
 import TransactionForm from '@/components/TransactionForm'
+import TransactionSummary from './components/TransactionSummary'
 
 
 
@@ -161,70 +161,14 @@ export default function TransactionsPage() {
             sx={{ flexShrink: 0 }}
           >
           Exportar
-        </Button>
+</Button>
       </Box>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            border: '1px solid',
-            borderColor: 'divider',
-            background: alpha(theme.palette.success.main, 0.04),
-          }}>
-            <CardContent>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
-                Ingresos Totales
-              </Typography>
-              <Typography variant="h5" sx={{ color: 'success.main', fontWeight: 700 }}>
-                 {formatCurrency(totalIncome, currency)}
-               </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            border: '1px solid',
-            borderColor: 'divider',
-            background: alpha(theme.palette.error.main, 0.04),
-          }}>
-            <CardContent>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
-                Gastos Totales
-              </Typography>
-              <Typography variant="h5" sx={{ color: 'error.main', fontWeight: 700 }}>
-                 {formatCurrency(totalExpenses, currency)}
-               </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
-            <CardContent>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
-                Balance
-              </Typography>
-              <Typography variant="h5" sx={{ 
-                color: totalIncome - totalExpenses >= 0 ? 'success.main' : 'error.main',
-                fontWeight: 700 
-              }}>
-                {formatCurrency(totalIncome - totalExpenses, currency)}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
-            <CardContent>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
-                Total Transacciones
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                {filteredTransactions.length}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      <TransactionSummary
+        totalIncome={totalIncome}
+        totalExpenses={totalExpenses}
+        currency={currency}
+      />
 
       <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
