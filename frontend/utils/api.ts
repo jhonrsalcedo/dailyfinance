@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { getSession } from 'next-auth/react'
+import { getSession, signOut } from 'next-auth/react'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -23,9 +23,15 @@ api.interceptors.request.use(async (config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      console.warn('Unauthorized request')
+      // Token expired or unauthorized - redirect to login
+      await signOut({ redirect: false, callbackUrl: '/login?expired=true' })
+      
+      // Use window for client-side redirect
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login?expired=true'
+      }
     }
     return Promise.reject(error)
   }

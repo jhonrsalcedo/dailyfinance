@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import {
   Box,
@@ -34,6 +34,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const expiredMessage = searchParams?.get('expired')
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -183,6 +185,12 @@ export default function LoginPage() {
             <Typography variant="h5" fontWeight={700} textAlign="center" mb={3}>
               {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
             </Typography>
+
+            {expiredMessage && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Tu sesión ha expirado. Por favor, inicia sesión nuevamente.
+              </Alert>
+            )}
 
             {error && (
               <Alert severity="error" sx={{ mb: 2 }}>
