@@ -211,7 +211,7 @@ export default function Dashboard() {
 
       <Grid container spacing={3}>
         <Grid item xs={12} lg={4}>
-          {isAuthenticated && <RecentTransactions />}
+          <RecentTransactions />
         </Grid>
         <Grid item xs={12} lg={4}>
           <Card sx={{ height: 380, border: '1px solid', borderColor: 'divider' }}>

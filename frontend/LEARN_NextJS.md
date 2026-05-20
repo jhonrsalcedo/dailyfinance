@@ -573,4 +573,87 @@ npm install
 
 ### Nota sobre este proyecto
 
-**El proyecto actual funciona bien con npm.** El cambio a pnpm es opcional y no provide beneficios significativos para un proyecto de este tamaño. |
+**El proyecto actual funciona bien con npm.** El cambio a pnpm es opcional y no provide beneficios significativos para un proyecto de este tamaño.
+
+---
+
+## 24. Middleware de Autenticación (NextAuth)
+
+### Patrón Correcto: `withAuth` de NextAuth
+
+**IMPORTANTE**: Usar SIEMPRE `withAuth` de NextAuth, NO intentar verificar tokens manualmente.
+
+```typescript
+// ✅ CORRECTO - Usar withAuth de NextAuth
+// frontend/middleware.ts
+export { default } from 'next-auth/middleware'
+
+export const config = {
+  matcher: [
+    '/transactions/:path*',
+    '/settings/:path*',
+    '/reports/:path*',
+    '/budget/:path*',
+  ],
+}
+```
+
+### Por qué NO hacer verificación manual
+
+| Intento | Problema |
+|---------|----------|
+| ❌ `jwtVerify(token)` con jose | NextAuth usa tokens OPCOS (no JWT estándar) |
+| ❌ `jwt.decode(token)` | Los tokens de NextAuth no son decodificables así |
+| ❌ `jwt.verify()` | Los tokens no son JWT firmados por nosotros |
+
+**NextAuth maneja internamente la validación del token**. Intentar hacerlo manualmente rompe la autenticación.
+
+### Rutas Públicas vs Protegidas
+
+| Ruta | Tipo | Descripción |
+|------|------|-------------|
+| `/` | 🟡 Pública (demo) | Dashboard con datos demo si no está logueado |
+| `/login` | 🟢 Pública | Página de login/registro |
+| `/transactions/*` | 🔴 Protegida | Requiere autenticación |
+| `/settings/*` | 🔴 Protegida | Requiere autenticación |
+| `/reports/*` | 🔴 Protegida | Requiere autenticación |
+| `/budget/*` | 🔴 Protegida | Requiere autenticación |
+
+### Agregar Nueva Ruta Protegida
+
+```typescript
+// En frontend/middleware.ts
+export const config = {
+  matcher: [
+    '/transactions/:path*',
+    '/settings/:path*',
+    '/reports/:path*',
+    '/budget/:path*',
+    '/nuevaRuta/:path*',  // ← Agregar aquí
+  ],
+}
+```
+
+### Checklist para Cambios de Auth
+
+**ANTES de implementar cualquier feature relacionada con auth:**
+
+- [ ] Leer la documentación oficial de NextAuth
+- [ ] Verificar si NextAuth usa tokens JWT o opacos
+- [ ] Implementar usando `withAuth` (si aplica)
+- [ ] NO intentar verificar tokens manualmente
+- [ ] Testear flujo completo:
+  - Login
+  - Dashboard
+  - Transacciones
+  - Settings
+  - Logout
+- [ ] Verificar que usuarios existentes siguen funcionando
+
+**Después de cualquier cambio de auth:**
+
+- [ ] `npm run typecheck` pasa
+- [ ] `npm run test` pasa
+- [ ] Login funciona con usuario existente
+- [ ] Logout funciona correctamente
+- [ ] Rutas protegidas redirigen correctamente |
