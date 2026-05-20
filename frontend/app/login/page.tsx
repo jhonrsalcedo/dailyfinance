@@ -29,6 +29,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import axios from 'axios'
 import { registerSchema, PASSWORD_REQUIREMENTS } from '@/schemas/authSchema'
 import api from '@/utils/api'
+import LoginRedirect from '@/components/LoginRedirect'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -172,6 +173,7 @@ export default function LoginPage() {
 
   return (
     <Container maxWidth="sm">
+      <LoginRedirect />
       <Box
         sx={{
           minHeight: '100vh',
