@@ -6,49 +6,86 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                     FRONTEND (Vercel)                        │
 │  Next.js 15 + MUI + NextAuth + React Query                  │
-│  URL: https://dailyfinance.vercel.app (o custom domain)      │
+│  URL: https://dailyfinance.vercel.app (o custom domain)     │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼ (API calls)
 ┌─────────────────────────────────────────────────────────────┐
-│                     BACKEND (Railway)                        │
-│  FastAPI + SQLModel + SQLite/PostgreSQL                      │
-│  URL: https://backend.railway.app/api/v1                    │
-│  API Docs: https://backend.railway.app/docs                 │
+│                     BACKEND (Vercel/Railway/Render)         │
+│  FastAPI + SQLModel                                          │
+│  URL: https://backend-productor.vercel.app/api/v1           │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼ (queries)
+┌─────────────────────────────────────────────────────────────┐
+│                     DATABASE (Turso - libSQL)               │
+│  libSQL (SQLite-compatible, cloud)                          │
+│  URL: libsql://dailyfinance-{id}.turso.io                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## URLs Actuales de Producción
+## URLs de Producción
 
 | Servicio | URL | Descripción |
 |----------|-----|-------------|
 | **Frontend** | `https://dailyfinance.vercel.app` | App principal |
-| **Backend** | `https://backend.railway.app/api/v1` | API REST |
-| **API Docs** | `https://backend.railway.app/docs` | Swagger UI |
+| **Backend** | *(configurar según deploy)* | API REST |
+| **API Docs** | *(configurar según deploy)* | Swagger UI |
+| **Base de Datos** | Turso libSQL | Cloud SQLite |
 | **GitHub** | `https://github.com/jhonrsalcedo/dailyfinance` | Repositorio |
 
 ---
 
-## Flujo de Deploy (Automático con GitHub Actions)
+## Proveedores de Base de Datos Soportados
 
-### Rama `develop` → Deploy de staging
+### 1. Turso (libSQL) - RECOMENDADO
+**Gratuito: 9GB**
+
 ```bash
-git checkout develop
-git merge feature/tu-feature
-git push origin develop
-# Vercel: Deploy Preview automático
+# Instalar CLI
+curl -sSfL https://get.tur.so/install.sh | bash
+
+# Crear base de datos
+turso db create dailyfinance
+
+# Obtener URL
+turso db show dailyfinance
+
+# Crear token
+turso db tokens create dailyfinance
 ```
 
-### Rama `main` → Deploy de producción
-```bash
-git checkout main
-git merge develop
-git tag -a v1.x.x -m "Release v1.x.x"
-git push origin main --tags
-# Vercel: Deploy producción automático
-# Railway: Redeploy automático
+**Configuración:**
+```env
+DATABASE_URL=libsql://dailyfinance-{id}.turso.io
+TURSO_AUTH_TOKEN=tu-token-aqui
+ENVIRONMENT=production
+```
+
+### 2. Neon (PostgreSQL Serverless)
+**Gratuito: 500MB**
+
+```env
+DATABASE_URL=postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname
+ENVIRONMENT=production
+```
+
+### 3. Railway (PostgreSQL)
+**Gratuito: 1GB**
+
+```env
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+ENVIRONMENT=production
+```
+
+### 4. SQLite Local (Desarrollo)
+**Para desarrollo local únicamente**
+
+```env
+DATABASE_URL=sqlite:///db/dailyfinance.db
+ENVIRONMENT=development
 ```
 
 ---
@@ -59,18 +96,40 @@ git push origin main --tags
 
 | Variable | Valor | Descripción |
 |----------|-------|-------------|
-| `NEXTAUTH_SECRET` | `xxxxxxxxxxxx` | Secret para NextAuth |
+| `NEXTAUTH_SECRET` | `***` | Secret para NextAuth (NO mostrar en docs) |
 | `NEXTAUTH_URL` | `https://dailyfinance.vercel.app` | URL de producción |
-| `NEXT_PUBLIC_API_URL` | `https://backend.railway.app/api/v1` | URL del backend |
+| `NEXT_PUBLIC_API_URL` | `https://backend-production.vercel.app/api/v1` | URL del backend |
 
-### Backend (Railway)
+### Backend
 
-| Variable | Valor | Descripción |
-|----------|-------|-------------|
-| `DATABASE_URL` | `sqlite:///db/dailyfinance.db` | Local development |
-| `DATABASE_URL` | `postgresql://user:pass@host:5432/db` | Producción (PostgreSQL) |
-| `ENVIRONMENT` | `production` | Modo producción |
-| `SECRET_KEY` | `xxxxxxxxxxxx` | Secret para JWT |
+| Variable | Desarrollo | Producción |
+|----------|-----------|------------|
+| `DATABASE_URL` | `sqlite:///db/dailyfinance.db` | `libsql://dailyfinance-{id}.turso.io` |
+| `TURSO_AUTH_TOKEN` | *(vacío)* | `***` |
+| `ENVIRONMENT` | `development` | `production` |
+| `NEXTAUTH_SECRET` | `your-secret-key` | `***` |
+| `NEXTAUTH_URL` | `http://localhost:3000` | `https://dailyfinance.vercel.app` |
+
+---
+
+## Flujo de Deploy
+
+### Rama `develop` → Staging
+```bash
+git checkout develop
+git merge feature/tu-feature
+git push origin develop
+# Vercel: Deploy Preview automático
+```
+
+### Rama `main` → Producción
+```bash
+git checkout main
+git merge develop
+git tag -a v1.x.x -m "Release v1.x.x"
+git push origin main --tags
+# Redeploy automático en Vercel/Railway
+```
 
 ---
 
@@ -81,12 +140,12 @@ git push origin main --tags
 - **Estrategia**: JWT con credentials
 - **Duración de sesión**: 7 días
 - **Rutas protegidas**: `/transactions`, `/settings`, `/reports`, `/budget`
-- **Middleware**: `withAuth` de NextAuth (protección automática)
+- **Middleware**: `withAuth` de NextAuth
 
 ### Demo Mode
 - Usuarios no logueados ven transacciones de ejemplo
 - Dashboard muestra datos simulados
-- Incentiva registro sin exponer datos reales
+- No expone datos reales de otros usuarios
 
 ### API Endpoints
 | Endpoint | Auth | Descripción |
@@ -103,32 +162,30 @@ git push origin main --tags
 ## Solución de Problemas
 
 ### Auth no funciona en producción
-1. Verificar `NEXTAUTH_SECRET` está configurado en Vercel
+1. Verificar `NEXTAUTH_SECRET` configurado en Vercel
 2. Verificar `NEXTAUTH_URL` apunta al dominio correcto
 3. Verificar `NEXT_PUBLIC_API_URL` del backend
 
 ### CORS errors
 1. Verificar que el backend tenga los origins correctos
 2. El frontend debe usar `https://` no `http://`
-3. Revisar cookies en el browser (SameSite settings)
 
 ### Middleware bloqueando usuarios
-1. Verificar que el middleware usa `withAuth` de NextAuth
-2. NO intentar verificar tokens manualmente con jose
+1. Verificar que usa `withAuth` de NextAuth
+2. NO usar jose para verificar tokens manualmente
 3. NextAuth usa tokens OPCOS, no JWT estándar
 
 ### Demo mode no aparece
-1. Verificar que el dashboard muestra datos demo cuando `status === 'unauthenticated'`
-2. Verificar que `RecentTransactions` renderiza `DemoRecentTransactions`
+1. Verificar estado de sesión (`useSession`)
+2. `RecentTransactions` debe renderizar `DemoRecentTransactions` cuando no está logueado
 
 ---
 
 ## Links Rápidos
 
 - [Vercel Dashboard](https://vercel.com/dashboard)
-- [Railway Dashboard](https://railway.app/dashboard)
+- [Turso Dashboard](https://console.turso.tech)
 - [GitHub Repository](https://github.com/jhonrsalcedo/dailyfinance)
-- [Swagger API Docs](https://backend.railway.app/docs)
 
 ---
 
@@ -137,12 +194,33 @@ git push origin main --tags
 - [ ] Todos los tests pasan (`npm run test`, `pytest`)
 - [ ] TypeScript sin errores (`npm run typecheck`)
 - [ ] Lint pasa (`npm run lint`)
-- [ ] Variables de entorno configuradas en Vercel
-- [ ] Variables de entorno configuradas en Railway
-- [ ] CORS configurado para dominios de producción
-- [ ] NEXTAUTH_SECRET configurado (no usar el de desarrollo)
+- [ ] Variables de entorno configuradas correctamente
+- [ ] `NEXTAUTH_SECRET` configurado en Vercel (no usar valores de dev)
+- [ ] `TURSO_AUTH_TOKEN` configurado en backend (producción)
 - [ ] Commits hechos a `develop`
 - [ ] Rama `main` actualizada con tags
+- [ ] **NO** exponer tokens o secrets en documentación
+
+---
+
+## Reglas de Seguridad
+
+### ⚠️ NUNCA exponer en documentación:
+- Tokens de autenticación
+- Secrets de producción
+- Credenciales de base de datos
+- URLs con credenciales embedidas
+
+### ✅ En documentation usar:
+```env
+# En lugar de:
+DATABASE_URL=libsql://dailyfinance-xxx.turso.io
+TURSO_AUTH_TOKEN=eyJhbGciOiJ...
+
+# Usar:
+DATABASE_URL=libsql://dailyfinance-{id}.turso.io
+TURSO_AUTH_TOKEN=***
+```
 
 ---
 
