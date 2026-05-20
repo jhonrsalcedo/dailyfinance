@@ -27,6 +27,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import LoginIcon from '@mui/icons-material/Login'
 import { useSession } from 'next-auth/react'
 import { useTranslation } from '@/utils/i18n'
+import { APP_VERSION } from '@/config/version'
 
 export const DRAWER_WIDTH = 260
 
@@ -217,7 +218,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         }}
       >
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center' }}>
-          {language === 'en' ? 'v1.0.0' : 'v1.0.0'}
+          v{APP_VERSION}
         </Typography>
       </Box>
     </Box>
