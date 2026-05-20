@@ -235,3 +235,62 @@ TURSO_AUTH_TOKEN=***
 - Demo mode para usuarios no logueados
 - Login redirect para usuarios ya autenticados
 - Documentación de auth en LEARN_NextJS.md
+
+### v1.2 → v1.2.1
+- Version display en Sidebar
+- Config centralizado en `config/version.ts`
+
+---
+
+## Versionamiento de la App
+
+### Ubicación
+La versión se muestra en el **Sidebar** (abajo del todo).
+
+### Archivos relacionados
+```
+frontend/config/version.ts    # Constante APP_VERSION
+frontend/components/Sidebar.tsx  # Muestra la versión
+```
+
+### Configuración de versión
+```ts
+// frontend/config/version.ts
+export const APP_VERSION = '1.2.1'
+export const APP_NAME = 'Daily Finance'
+```
+
+### Cómo actualizar la versión
+
+**Paso 1**: Editar `frontend/config/version.ts`
+```ts
+export const APP_VERSION = '1.3.0'
+```
+
+**Paso 2**: Commit y tag
+```bash
+git add .
+git commit -m "release: v1.3.0"
+git tag v1.3.0
+git push origin main --tags
+```
+
+**Paso 3**: Vercel redeploya automáticamente
+- La nueva versión aparece en ~2-3 minutos
+- Se muestra en el Sidebar como `v1.3.0`
+
+### Checklist de Release
+- [ ] Actualizar `APP_VERSION` en `config/version.ts`
+- [ ] `npm run typecheck` pasa
+- [ ] `npm run test` pasa
+- [ ] `npm run lint` pasa
+- [ ] Commit con mensaje `release: v1.x.x`
+- [ ] Tag con `v1.x.x`
+- [ ] Push a `main` con tags
+
+### Versionado Semántico (Recomendado)
+| Tipo | Ejemplo | Cuándo usar |
+|------|---------|-------------|
+| **Patch** | v1.2.0 → v1.2.1 | Bug fixes |
+| **Minor** | v1.2.0 → v1.3.0 | New features |
+| **Major** | v1.2.0 → v2.0.0 | Breaking changes |

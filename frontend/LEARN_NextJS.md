@@ -656,4 +656,69 @@ export const config = {
 - [ ] `npm run test` pasa
 - [ ] Login funciona con usuario existente
 - [ ] Logout funciona correctamente
-- [ ] Rutas protegidas redirigen correctamente |
+- [ ] Rutas protegidas redirigen correctamente
+
+---
+
+## 25. Versionamiento de la App
+
+### Ubicación de la Versión
+La versión se muestra en el **Sidebar** (abajo del todo).
+
+### Archivos del Sistema de Versión
+```
+frontend/
+├── config/
+│   └── version.ts    # APP_VERSION, APP_NAME
+└── components/
+    └── Sidebar.tsx   # Muestra v{APP_VERSION}
+```
+
+### Configuración de Versión
+```typescript
+// frontend/config/version.ts
+export const APP_VERSION = '1.2.1'
+export const APP_NAME = 'Daily Finance'
+export const APP_DESCRIPTION = 'Gestión Personal de Finanzas'
+```
+
+### Cómo Actualizar la Versión
+
+**1. Editar `config/version.ts`:**
+```typescript
+export const APP_VERSION = '1.3.0'
+```
+
+**2. Commit y tag:**
+```bash
+git add .
+git commit -m "release: v1.3.0"
+git tag v1.3.0
+git push origin main --tags
+```
+
+**3. Vercel redeploya automáticamente** (~2-3 min)
+
+### Checklist de Release
+- [ ] Actualizar `APP_VERSION` en `config/version.ts`
+- [ ] `npm run typecheck` pasa
+- [ ] `npm run test` pasa
+- [ ] `npm run lint` pasa
+- [ ] Commit con mensaje `release: v1.x.x`
+- [ ] Tag con `v1.x.x`
+- [ ] Push a `main` con tags (`--tags`)
+
+### Versionado Semántico
+| Tipo | Ejemplo | Cuándo |
+|------|---------|--------|
+| **Patch** | v1.2.0 → v1.2.1 | Bug fixes |
+| **Minor** | v1.2.0 → v1.3.0 | Nuevas features |
+| **Major** | v1.2.0 → v2.0.0 | Breaking changes |
+
+### Historial de Versiones
+| Versión | Fecha | Cambios |
+|---------|-------|---------|
+| v1.2.1 | 2026-05-20 | Version display en Sidebar |
+| v1.2.0 | 2026-05-20 | Demo mode, middleware fix |
+| v1.1.0 | - | Onboarding, UI/UX |
+| v1.0.0 | - | Versión inicial | |
