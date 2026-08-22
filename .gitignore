@@ -75,6 +75,8 @@ ehthumbs.db
 # Testing
 coverage/
 htmlcov/
+playwright-report/
+test-results/
 
 # Build
 dist/

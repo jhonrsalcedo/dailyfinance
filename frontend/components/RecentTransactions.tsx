@@ -170,7 +170,7 @@ function RecentTransactionsList() {
 export default function RecentTransactions() {
   const { status } = useSession()
 
-  if (status === 'unauthenticated') {
+  if (status !== 'authenticated') {
     return <DemoRecentTransactions />
   }
 

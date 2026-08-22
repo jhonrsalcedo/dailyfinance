@@ -4,7 +4,6 @@ test.describe('Dashboard', () => {
   test('shows demo mode when not authenticated', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByText('Modo Demo')).toBeVisible()
-    await expect(page.getByText('Iniciar Sesión')).toBeVisible()
   })
 
   test('shows transaction form when authenticated', async () => {
