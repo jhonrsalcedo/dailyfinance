@@ -159,16 +159,17 @@ npx lint-staged     # Ejecutar todos los checks
 ### Transacciones
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/api/v1/transactions` | ❌ | Listar transacciones |
-| GET | `/api/v1/transactions/stats` | ❌ | Estadísticas mensuales |
-| GET | `/api/v1/transactions/export` | ❌ | Exportar CSV |
+| GET | `/api/v1/transactions` | ✅ | Listar transacciones del usuario |
+| GET | `/api/v1/transactions/stats` | ✅ | Estadísticas mensuales del usuario |
+| GET | `/api/v1/transactions/export` | ✅ | Exportar CSV del usuario |
 | POST | `/api/v1/transactions` | ✅ | Crear transacción |
-| DELETE | `/api/v1/transactions/{id}` | ✅ | Eliminar transacción |
+| PUT | `/api/v1/transactions/{id}` | ✅ | Actualizar transacción (solo dueño) |
+| DELETE | `/api/v1/transactions/{id}` | ✅ | Eliminar transacción (solo dueño) |
 
 ### Categorías
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/api/v1/categories` | ❌ | Listar categorías |
+| GET | `/api/v1/categories` | ❌ | Listar categorías (globales) |
 | POST | `/api/v1/categories` | ✅ | Crear categoría |
 | PUT | `/api/v1/categories/{id}` | ✅ | Actualizar categoría |
 | DELETE | `/api/v1/categories/{id}` | ✅ | Eliminar categoría |
@@ -176,9 +177,13 @@ npx lint-staged     # Ejecutar todos los checks
 ### Otros
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/api/v1/payment-methods` | ❌ | Métodos de pago |
+| GET | `/api/v1/payment-methods` | ❌ | Métodos de pago (globales) |
 | GET/POST | `/api/v1/settings` | ❌ | Configuración (salario) |
-| GET/POST | `/api/v1/budget` | ❌ | Presupuesto |
+| GET/POST | `/api/v1/budget` | ✅ | Presupuesto por usuario |
+| GET | `/api/v1/stats/*` | ✅ | Estadísticas por usuario |
+
+> **Nota de seguridad**: transacciones, presupuestos y stats están aislados por `user_id`.
+> Las filas legacy con `user_id=NULL` quedan invisibles para todos los usuarios.
 
 ---
 
