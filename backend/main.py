@@ -10,6 +10,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from app.config import engine, create_db_and_tables
+from app.database import run_migrations
 from app.seed import seed_database
 from app.routes.auth import router as auth_router
 from app.routes.transactions import router as transaction_router
@@ -28,6 +29,7 @@ limiter = Limiter(key_func=get_remote_address)
 async def lifespan(app: FastAPI):
     print("Inicializando base de datos...")
     create_db_and_tables(engine)
+    run_migrations(engine)
     seed_database()
     yield
     print("Apagando servicios...")

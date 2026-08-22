@@ -6,6 +6,16 @@ from app.config import engine
 def create_db_and_tables(engine):
     SQLModel.metadata.create_all(engine)
 
+def run_migrations(engine):
+    with engine.connect() as conn:
+        for table in ("\"transaction\"", "monthlybudget"):
+            plain_name = table.replace("\"", "")
+            columns = [row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")]
+            if "user_id" not in columns:
+                conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN user_id INTEGER REFERENCES \"user\"(id)")
+                conn.exec_driver_sql(f"CREATE INDEX ix_{plain_name}_user_id ON {table} (user_id)")
+                conn.commit()
+
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(unique=True, index=True)
@@ -36,6 +46,7 @@ class Transaction(SQLModel, table=True):
     description: Optional[str]
     category_id: Optional[int] = Field(default=None, foreign_key="category.id")
     method_id: Optional[int] = Field(default=None, foreign_key="paymentmethod.id")
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id", index=True)
 
 class MonthlyBudget(SQLModel, table=True):
     __tablename__ = "monthlybudget"
@@ -43,6 +54,7 @@ class MonthlyBudget(SQLModel, table=True):
     month: str = Field(index=True)
     category_id: int = Field(foreign_key="category.id")
     limit_amount: float = Field(ge=0.0)
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id", index=True)
 
 class UserSettings(SQLModel, table=True):
     __tablename__ = "usersettings"

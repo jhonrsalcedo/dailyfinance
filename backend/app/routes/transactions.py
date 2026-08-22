@@ -26,6 +26,7 @@ def create_transaction(
     current_user: User = Depends(get_current_user)
 ):
     db_transaction = Transaction.model_validate(transaction)
+    db_transaction.user_id = current_user.id
     session.add(db_transaction)
     session.commit()
     session.refresh(db_transaction)
@@ -35,13 +36,18 @@ def create_transaction(
 def read_transactions(
     session: Session = Depends(get_session),
     category_id: Optional[int] = Query(None),
-    month: Optional[str] = Query(None, description="Format YYYY-MM")
+    month: Optional[str] = Query(None, description="Format YYYY-MM"),
+    current_user: User = Depends(get_current_user)
 ):
-    statement = select(Transaction).order_by(Transaction.date.desc())
-    
+    statement = (
+        select(Transaction)
+        .where(Transaction.user_id == current_user.id)
+        .order_by(Transaction.date.desc())
+    )
+
     if category_id:
         statement = statement.where(Transaction.category_id == category_id)
-    
+
     if month:
         start_date, end_date = parse_month_filter(month)
         statement = statement.where(Transaction.date.between(start_date, end_date))
@@ -52,7 +58,8 @@ def read_transactions(
 @router.get("/stats")
 def get_stats(
     session: Session = Depends(get_session),
-    month: Optional[str] = Query(None, description="Format YYYY-MM, defaults to current month")
+    month: Optional[str] = Query(None, description="Format YYYY-MM, defaults to current month"),
+    current_user: User = Depends(get_current_user)
 ):
     current_month = datetime.now().strftime("%Y-%m")
     month_filter = month or current_month
@@ -67,6 +74,7 @@ def get_stats(
         .join(Transaction, Category.id == Transaction.category_id)
         .where(Transaction.date.between(start_date, end_date))
         .where(Transaction.category_id != 1)
+        .where(Transaction.user_id == current_user.id)
         .group_by(Category.id, Category.name)
     ).all()
 
@@ -80,15 +88,25 @@ def get_stats(
         ]
     }
 
+def get_owned_transaction_or_403(
+    transaction_id: int,
+    session: Session,
+    current_user: User
+) -> Transaction:
+    transaction = session.get(Transaction, transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transacción no encontrada")
+    if transaction.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso sobre esta transacción")
+    return transaction
+
 @router.delete("/{transaction_id}")
 def delete_transaction(
     transaction_id: int,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    transaction = session.get(Transaction, transaction_id)
-    if not transaction:
-        raise HTTPException(status_code=404, detail="Transacción no encontrada")
+    transaction = get_owned_transaction_or_403(transaction_id, session, current_user)
     session.delete(transaction)
     session.commit()
     return {"message": "Transacción eliminada"}
@@ -100,10 +118,8 @@ def update_transaction(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    transaction = session.get(Transaction, transaction_id)
-    if not transaction:
-        raise HTTPException(status_code=404, detail="Transacción no encontrada")
-    
+    transaction = get_owned_transaction_or_403(transaction_id, session, current_user)
+
     update_data = transaction_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(transaction, field, value)
@@ -117,7 +133,8 @@ def update_transaction(
 def export_transactions(
     session: Session = Depends(get_session),
     format: str = Query("csv", pattern="^(csv|excel)$"),
-    month: Optional[str] = Query(None, description="Format YYYY-MM")
+    month: Optional[str] = Query(None, description="Format YYYY-MM"),
+    current_user: User = Depends(get_current_user)
 ):
     current_month = datetime.now().strftime("%Y-%m")
     month_filter = month or current_month
@@ -129,6 +146,7 @@ def export_transactions(
             .outerjoin(Category, Transaction.category_id == Category.id)
             .outerjoin(PaymentMethod, Transaction.method_id == PaymentMethod.id)
             .where(Transaction.date.between(start_date, end_date))
+            .where(Transaction.user_id == current_user.id)
             .order_by(Transaction.date.desc())
         )
     else:
@@ -136,6 +154,7 @@ def export_transactions(
             select(Transaction, Category.name, PaymentMethod.name)
             .outerjoin(Category, Transaction.category_id == Category.id)
             .outerjoin(PaymentMethod, Transaction.method_id == PaymentMethod.id)
+            .where(Transaction.user_id == current_user.id)
             .order_by(Transaction.date.desc())
         )
 
