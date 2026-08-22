@@ -318,6 +318,37 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
 No importa qué haga el frontend - el backend siempre proteje los datos.
 
+### Patrón: Guard de Modo Demo (componentes públicos)
+
+Para componentes públicos que muestran datos demo a no autenticados (ej: `RecentTransactions.tsx`), el guard debe ser **negativo**:
+
+```tsx
+const { status } = useSession()
+
+// ✅ CORRECTO: negativo — cubre 'loading' + 'unauthenticated'
+if (status !== 'authenticated') {
+  return <DemoComponent />
+}
+
+return <RealDataComponent />
+```
+
+```tsx
+// ❌ INCORRECTO: positivo — durante 'loading' cae al componente real,
+// llama la API sin token → 401 → interceptor redirige a /login
+if (status === 'unauthenticated') {
+  return <DemoComponent />
+}
+```
+
+**Por qué**: `useSession()` inicia en `'loading'`, no en `'unauthenticated'`. Con guard positivo, durante el load inicial se monta el componente real y dispara la API sin token, generando 401 fantasma con mensaje de "sesión expirada".
+
+| Estado | Guard `!== 'authenticated'` | Guard `=== 'unauthenticated'` |
+|--------|---------------------------|------------------------------|
+| `loading` | ✅ Muestra demo (sin API call) | ❌ Monta real → 401 |
+| `unauthenticated` | ✅ Muestra demo | ✅ Muestra demo |
+| `authenticated` | ✅ Datos reales | ✅ Datos reales |
+
 ---
 
 ## 10. Regla Estándar: Nueva Sección Protegida
