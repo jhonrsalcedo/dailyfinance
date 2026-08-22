@@ -16,6 +16,7 @@ import {
   useTheme,
 } from '@mui/material'
 import { formatCurrency } from '@/utils/currency'
+import { parseLocalDate } from '@/utils/date'
 import { UserSettings } from '@/models'
 import DemoRecentTransactions from './DemoRecentTransactions'
 
@@ -37,7 +38,7 @@ function RecentTransactionsList() {
   const { data: transactions } = useQuery<Transaction[]>({
     queryKey: ['recentTransactions'],
     queryFn: async () => {
-      const { data } = await api.get<Transaction[]>('/transactions')
+      const { data } = await api.get<Transaction[]>('/transactions/')
       return data.slice(0, 5)
     },
   })
@@ -45,7 +46,7 @@ function RecentTransactionsList() {
   const { data: categoriesData } = useQuery<{ id: number; name: string }[]>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await api.get('/categories')
+      const { data } = await api.get('/categories/')
       return data
     },
   })
@@ -129,7 +130,7 @@ function RecentTransactionsList() {
                   }
                   secondary={
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {new Date(transaction.date).toLocaleDateString('es-CO', {
+                      {parseLocalDate(transaction.date).toLocaleDateString('es-CO', {
                         day: '2-digit',
                         month: 'short',
                       })}

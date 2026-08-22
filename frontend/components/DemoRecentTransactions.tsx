@@ -13,6 +13,7 @@ import {
   alpha,
 } from '@mui/material'
 import { formatCurrency } from '@/utils/currency'
+import { parseLocalDate } from '@/utils/date'
 import { DEMO_TRANSACTIONS, DEMO_CATEGORIES } from '@/data/demoData'
 
 export default function DemoRecentTransactions() {
@@ -72,7 +73,7 @@ export default function DemoRecentTransactions() {
                   }
                   secondary={
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {new Date(transaction.date).toLocaleDateString('es-CO', {
+                      {parseLocalDate(transaction.date).toLocaleDateString('es-CO', {
                         day: '2-digit',
                         month: 'short',
                       })}

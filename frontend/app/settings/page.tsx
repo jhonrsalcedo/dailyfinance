@@ -199,7 +199,7 @@ export default function SettingsPage() {
       const { data } = await api.put(`/categories/${category.id}`, category)
       setCategoryList(categoryList.map(c => c.id === category.id ? data : c))
     } else {
-      const { data } = await api.post('/categories', category)
+      const { data } = await api.post('/categories/', category)
       setCategoryList([...categoryList, data])
     }
     setCategoryDialog({ open: false, category: null })

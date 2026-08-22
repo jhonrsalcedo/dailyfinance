@@ -74,7 +74,7 @@ export default function BudgetPage() {
   const { data: categories } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await api.get('/categories')
+      const { data } = await api.get('/categories/')
       return data
     },
   })
@@ -82,7 +82,7 @@ export default function BudgetPage() {
   const { data: budgets = [], isLoading } = useQuery<BudgetData[]>({
     queryKey: ['budgets', selectedMonth],
     queryFn: async () => {
-      const { data } = await api.get(`/budget?month=${selectedMonth}`)
+      const { data } = await api.get(`/budget/?month=${selectedMonth}`)
       return data.map((b: any) => ({
         ...b,
         category_name: categories?.find((c: Category) => c.id === b.category_id)?.name || 'Sin categoría'
@@ -92,7 +92,7 @@ export default function BudgetPage() {
 
   const createMutation = useMutation({
     mutationFn: async (budget: { month: string; category_id: number; limit_amount: number }) => {
-      const { data } = await api.post('/budget', budget)
+      const { data } = await api.post('/budget/', budget)
       return data
     },
     onSuccess: () => {

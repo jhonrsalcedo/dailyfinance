@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/utils/api'
+import { todayLocalISO } from '@/utils/date'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -84,7 +85,7 @@ export default function TransactionForm({
   const { data: categories = [] } = useQuery<Array<{id: number, name: string, icon?: string, color?: string}>>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await api.get('/categories')
+      const { data } = await api.get('/categories/')
       return data
     },
   })
@@ -92,7 +93,7 @@ export default function TransactionForm({
   const { data: paymentMethods = [] } = useQuery<Array<{id: number, name: string, type: string}>>({
     queryKey: ['paymentMethods'],
     queryFn: async () => {
-      const { data } = await api.get('/payment-methods')
+      const { data } = await api.get('/payment-methods/')
       return data
     },
   })
@@ -110,7 +111,7 @@ export default function TransactionForm({
         return data
       } else {
         const { data } = await api.post(
-          '/transactions',
+          '/transactions/',
           transactionData
         )
         return data
@@ -160,7 +161,7 @@ export default function TransactionForm({
       category_id: undefined,
       method_id: undefined,
       description: '',
-      date: new Date().toISOString().split('T')[0],
+      date: todayLocalISO(),
     },
   })
 

@@ -39,6 +39,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
 import { formatCurrency } from '@/utils/currency'
+import { parseLocalDate } from '@/utils/date'
 import { useSnackbar } from '@/hooks/useSnackbar'
 import { Transaction, Category, PaymentMethod, UserSettings } from '@/models'
 import { TransactionsSkeleton } from '@/components/skeletons'
@@ -78,7 +79,7 @@ export default function TransactionsPage() {
   const { data: transactionsData, isLoading } = useQuery<Transaction[]>({
     queryKey: ['transactions'],
     queryFn: async () => {
-      const { data } = await api.get<Transaction[]>('/transactions')
+      const { data } = await api.get<Transaction[]>('/transactions/')
       return data
     },
   })
@@ -86,7 +87,7 @@ export default function TransactionsPage() {
   const { data: categoriesData } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await api.get('/categories')
+      const { data } = await api.get('/categories/')
       return data
     },
   })
@@ -94,7 +95,7 @@ export default function TransactionsPage() {
   const { data: methodsData } = useQuery<PaymentMethod[]>({
     queryKey: ['paymentMethods'],
     queryFn: async () => {
-      const { data } = await api.get('/payment-methods')
+      const { data } = await api.get('/payment-methods/')
       return data
     },
   })
@@ -185,6 +186,7 @@ export default function TransactionsPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{ flex: 1, minWidth: { sm: 200 } }}
+              inputProps={{ 'aria-label': 'Buscar transacciones' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -239,7 +241,7 @@ export default function TransactionsPage() {
                     return (
                       <TableRow key={transaction.id} hover>
                         <TableCell>
-                          {new Date(transaction.date).toLocaleDateString('es-CO')}
+                          {parseLocalDate(transaction.date).toLocaleDateString('es-CO')}
                         </TableCell>
                         <TableCell>{transaction.description || '-'}</TableCell>
                         <TableCell>
@@ -265,9 +267,10 @@ export default function TransactionsPage() {
                            </Typography>
                          </TableCell>
 <TableCell align="center">
-                            <IconButton 
-                              size="small" 
+                            <IconButton
+                              size="small"
                               color="primary"
+                              aria-label={`Editar ${transaction.description || 'transacción'}`}
                               onClick={() => {
                                 setEditingTransaction(transaction)
                                 setOpenEditDialog(true)
@@ -275,9 +278,10 @@ export default function TransactionsPage() {
                             >
                               <EditIcon fontSize="small" />
                             </IconButton>
-<IconButton 
-                              size="small" 
+<IconButton
+                              size="small"
                               color="error"
+                              aria-label={`Eliminar ${transaction.description || 'transacción'}`}
                               onClick={() => {
                                 setTransactionToDelete(transaction.id)
                                 setDeleteConfirmOpen(true)
@@ -311,7 +315,7 @@ export default function TransactionsPage() {
                             {transaction.description || 'Sin descripción'}
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            {new Date(transaction.date).toLocaleDateString('es-CO')}
+                            {parseLocalDate(transaction.date).toLocaleDateString('es-CO')}
                           </Typography>
                         </Box>
                          <Typography
@@ -340,9 +344,10 @@ export default function TransactionsPage() {
                         />
                       </Box>
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           color="primary"
+                          aria-label={`Editar ${transaction.description || 'transacción'}`}
                           onClick={() => {
                             setEditingTransaction(transaction)
                             setOpenEditDialog(true)
@@ -353,6 +358,7 @@ export default function TransactionsPage() {
                         <IconButton
                           size="small"
                           color="error"
+                          aria-label={`Eliminar ${transaction.description || 'transacción'}`}
                           onClick={() => {
                             setTransactionToDelete(transaction.id)
                             setDeleteConfirmOpen(true)
