@@ -379,6 +379,23 @@ git commit -m "feat: descripción"
 ### CI/CD en GitHub (con cada push)
 Jobs: lint-and-typecheck → build → tests
 
+### Regla Obligatoria: Sync develop → main
+Cuando los cambios estén verificados y pusheados a `develop`, **SIEMPRE recordar** llevarlos también a `main`:
+
+```bash
+# 1. Verificar que todo pasa (lint, typecheck, tests)
+# 2. Merge develop → main
+git checkout main
+git pull origin main
+git merge develop
+
+# 3. Push a producción
+git push origin main
+```
+
+- Confirmar con el usuario antes de pushear a `main` (producción)
+- Después del merge: actualizar documentación LEARN_*.md si aplica
+
 ---
 
 ## Recursos Adicionales
