@@ -1,20 +1,31 @@
 from typing import Optional
 from pathlib import Path
 from sqlmodel import Field, SQLModel
+from sqlalchemy import inspect
 from app.config import engine
 
 def create_db_and_tables(engine):
     SQLModel.metadata.create_all(engine)
 
 def run_migrations(engine):
-    with engine.connect() as conn:
-        for table in ("\"transaction\"", "monthlybudget"):
-            plain_name = table.replace("\"", "")
-            columns = [row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")]
+    inspector = inspect(engine)
+    tables_to_migrate = []
+    for table_name in ("transaction", "monthlybudget"):
+        if inspector.has_table(table_name):
+            columns = [col["name"] for col in inspector.get_columns(table_name)]
             if "user_id" not in columns:
-                conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN user_id INTEGER REFERENCES \"user\"(id)")
-                conn.exec_driver_sql(f"CREATE INDEX ix_{plain_name}_user_id ON {table} (user_id)")
-                conn.commit()
+                tables_to_migrate.append(table_name)
+    if not tables_to_migrate:
+        return
+    with engine.begin() as conn:
+        for table_name in tables_to_migrate:
+            conn.exec_driver_sql(
+                f'ALTER TABLE "{table_name}" ADD COLUMN user_id INTEGER '
+                f'REFERENCES "user"(id)'
+            )
+            conn.exec_driver_sql(
+                f'CREATE INDEX ix_{table_name}_user_id ON "{table_name}" (user_id)'
+            )
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
