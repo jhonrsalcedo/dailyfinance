@@ -6,12 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
-## [Sin liberar] - 2026-08-24
+## [1.3.0] - 2026-08-24
 
 ### Agregado
 - UX: Formateo de moneda en vivo en inputs (`$ 5.700.000` mientras se escribe) con nuevo componente `CurrencyInput` (react-number-format)
 - UX: `inputMode="numeric"` en inputs de moneda (teclado numérico en móvil)
 - Test: 5 tests unitarios de CurrencyInput (formateo, vaciado, negativos, accesibilidad)
+- Docs: Workflow de releases por lotes (develop → main) en AGENTS, skills, guías y checklists
 
 ### Integrado en
 - TransactionForm (monto, crear + editar)
