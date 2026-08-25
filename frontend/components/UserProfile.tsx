@@ -19,6 +19,7 @@ import {
 } from '@mui/material'
 import { UserSettings, ProfileUpdate, CURRENCIES } from '@/models'
 import { Loading } from '@/components/Loading'
+import CurrencyInput from '@/components/CurrencyInput'
 import api from '@/utils/api'
 import { formatCurrency } from '@/utils/currency'
 
@@ -153,13 +154,11 @@ export function UserProfile({ onSave }: UserProfileProps) {
           />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
+          <CurrencyInput
             label="Salario Mensual"
-            type="number"
             fullWidth
             value={formData.salary ?? ''}
-            onChange={(e) => handleChange('salary', Number(e.target.value) || undefined)}
-            InputProps={{ startAdornment: <Box sx={{ mr: 1 }}>$</Box> }}
+            onValueChange={(values) => handleChange('salary', values.floatValue)}
           />
         </Grid>
         <Grid item xs={12} sm={6}>

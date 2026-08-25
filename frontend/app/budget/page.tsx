@@ -39,6 +39,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { formatCurrency } from '@/utils/currency'
 import { useSnackbar } from '@/hooks/useSnackbar'
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
+import CurrencyInput from '@/components/CurrencyInput'
 import { Category, UserSettings } from '@/models'
 import { BudgetSkeleton } from '@/components/skeletons'
 import BudgetSummary from './components/BudgetSummary'
@@ -64,7 +65,10 @@ export default function BudgetPage() {
   const [editingBudget, setEditingBudget] = useState<BudgetData | null>(null)
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7))
 
-  const [formData, setFormData] = useState({ category_id: '', limit_amount: '' })
+  const [formData, setFormData] = useState<{ category_id: string; limit_amount: number | undefined }>({
+    category_id: '',
+    limit_amount: undefined,
+  })
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: number | null; name: string }>({
     open: false,
     id: null,
@@ -157,10 +161,10 @@ export default function BudgetPage() {
   const handleOpenDialog = (budget?: BudgetData) => {
     if (budget) {
       setEditingBudget(budget)
-      setFormData({ category_id: String(budget.category_id), limit_amount: String(budget.limit_amount) })
+      setFormData({ category_id: String(budget.category_id), limit_amount: budget.limit_amount })
     } else {
       setEditingBudget(null)
-      setFormData({ category_id: '', limit_amount: '' })
+      setFormData({ category_id: '', limit_amount: undefined })
     }
     setOpenDialog(true)
   }
@@ -168,18 +172,20 @@ export default function BudgetPage() {
   const handleCloseDialog = () => {
     setOpenDialog(false)
     setEditingBudget(null)
-    setFormData({ category_id: '', limit_amount: '' })
+    setFormData({ category_id: '', limit_amount: undefined })
   }
 
   const handleSave = () => {
+    if (formData.limit_amount === undefined) return
+
     const budgetData = {
       month: selectedMonth,
       category_id: parseInt(formData.category_id),
-      limit_amount: parseFloat(formData.limit_amount)
+      limit_amount: formData.limit_amount
     }
 
     if (editingBudget) {
-      updateMutation.mutate({ id: editingBudget.id, budget: { limit_amount: parseFloat(formData.limit_amount) } })
+      updateMutation.mutate({ id: editingBudget.id, budget: { limit_amount: formData.limit_amount } })
     } else {
       createMutation.mutate(budgetData)
     }
@@ -416,12 +422,11 @@ export default function BudgetPage() {
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <TextField
+              <CurrencyInput
                 label="Límite"
-                type="number"
                 fullWidth
-                value={formData.limit_amount}
-                onChange={(e) => setFormData({ ...formData, limit_amount: e.target.value })}
+                value={formData.limit_amount ?? ''}
+                onValueChange={(values) => setFormData({ ...formData, limit_amount: values.floatValue })}
               />
             </Grid>
           </Grid>

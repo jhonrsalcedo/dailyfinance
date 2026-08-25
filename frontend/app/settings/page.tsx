@@ -35,6 +35,7 @@ import HomeTourIcon from '@mui/icons-material/HomeWork'
 import { formatCurrency } from '@/utils/currency'
 import { UserSettings } from '@/models'
 import { UserProfile } from '@/components/UserProfile'
+import CurrencyInput from '@/components/CurrencyInput'
 import { IconPicker, getMUIcon } from '@/components/IconPicker'
 import { OnboardingModal } from '@/components/OnboardingModal'
 import { SettingsSkeleton } from '@/components/skeletons'
@@ -124,7 +125,7 @@ export default function SettingsPage() {
   const queryClient = useQueryClient()
   const showSnackbar = useSnackbar()
   const [tabValue, setTabValue] = useState(0)
-  const [salary, setSalary] = useState<string>('')
+  const [salary, setSalary] = useState<number | undefined>(undefined)
   const [categoryList, setCategoryList] = useState<Category[]>([])
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [categoryDialog, setCategoryDialog] = useState<{ open: boolean; category: Category | null }>({
@@ -169,7 +170,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (settings?.salary) {
-      setSalary(String(settings.salary))
+      setSalary(settings.salary)
     }
   }, [settings])
 
@@ -188,9 +189,8 @@ export default function SettingsPage() {
   })
 
   const handleSalarySave = () => {
-    const salaryNum = parseFloat(salary)
-    if (!isNaN(salaryNum) && salaryNum > 0) {
-      updateSalaryMutation.mutate(salaryNum)
+    if (salary !== undefined && salary > 0) {
+      updateSalaryMutation.mutate(salary)
     }
   }
 
@@ -374,15 +374,11 @@ export default function SettingsPage() {
                   Salario Mensual
                 </Typography>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-                  <TextField
+                  <CurrencyInput
                     label="Salario"
-                    type="number"
-                    value={salary}
-                    onChange={e => setSalary(e.target.value)}
+                    value={salary ?? ''}
+                    onValueChange={(values) => setSalary(values.floatValue)}
                     sx={{ flex: 1 }}
-                    InputProps={{
-                      startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
-                    }}
                   />
                   <Button
                     variant="contained"
@@ -401,11 +397,11 @@ export default function SettingsPage() {
                     </Typography>
                   )}
                 </Box>
-                {settings?.salary && (
+                {settings?.salary ? (
                   <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2 }}>
                      Último salario guardado: {formatCurrency(settings.salary, settings?.currency || 'COP')}
                   </Typography>
-                )}
+                ) : null}
               </CardContent>
             </Card>
           </Grid>

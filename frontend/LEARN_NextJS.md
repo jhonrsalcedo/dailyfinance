@@ -753,3 +753,79 @@ git push origin main --tags
 | v1.2.0 | 2026-05-20 | Demo mode, middleware fix |
 | v1.1.0 | - | Onboarding, UI/UX |
 | v1.0.0 | - | Versión inicial | |
+
+---
+
+## 26. Patrón: Input de Moneda Formateado en Vivo (CurrencyInput)
+
+### Problema
+Los inputs `type="number"` no soportan separadores de miles (`$ 5.700.000`), muestran el valor plano (`5700000`) y tienen UX pobre en móvil (flechas de spinner, sin teclado numérico garantizado).
+
+### Solución: componente `components/CurrencyInput.tsx`
+Wrapper de `react-number-format` (`NumericFormat`) integrado con MUI `TextField`:
+
+```typescript
+const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
+  function CurrencyInput(props, ref) {
+    return (
+      <NumericFormat
+        {...props}
+        customInput={TextField}
+        thousandSeparator="."
+        decimalSeparator=","
+        decimalScale={0}
+        prefix="$ "
+        allowNegative={false}
+        InputProps={{ inputProps: { inputMode: 'numeric' }, ...props.InputProps }}
+        getInputRef={ref}
+      />
+    )
+  },
+)
+```
+
+### Configuración COP
+| Prop | Valor | Razón |
+|------|-------|-------|
+| `thousandSeparator` | `"."` | Convención colombiana: `$ 5.700.000` |
+| `decimalSeparator` | `","` | **Obligatorio**: debe diferir del separador de miles o la librería lanza error |
+| `decimalScale` | `0` | COP no usa decimales |
+| `prefix` | `"$ "` | Símbolo con espacio |
+| `inputMode` | `"numeric"` | Vía `InputProps.inputProps` (NO como prop directo: MUI TextField no lo propaga al input) |
+
+### Integración con React Hook Form
+El valor interno sigue siendo **numérico crudo** (Zod intacto). Solo cambia la visualización:
+
+```tsx
+<Controller
+  name="amount"
+  control={control}
+  render={({ field }) => (
+    <CurrencyInput
+      label="Monto"
+      value={field.value ?? ''}
+      onValueChange={(values) => field.onChange(values.floatValue)}
+    />
+  )}
+/>
+```
+
+- `values.floatValue` es `number | undefined` → Zod sigue recibiendo `number`
+- Para estados con `useState`: guardar `number | undefined` (no string), evita `parseFloat`
+
+### Dónde se usa
+- `TransactionForm.tsx` (monto de transacciones, crear + editar)
+- `settings/page.tsx` (salario, tab Pagos)
+- `UserProfile.tsx` (salario, tab Perfil)
+- `budget/page.tsx` (límite de presupuesto)
+- `OnboardingModal.tsx` (salario inicial)
+
+### Gotchas descubiertos
+1. **`decimalSeparator` debe ser distinto de `thousandSeparator`** — si no, la librería lanza `Decimal separator can't be same as thousand separator`
+2. **`inputMode` no se propaga por la props normales** — MUI TextField lo aplica al FormControl, no al input; usar `InputProps={{ inputProps: { inputMode: 'numeric' } }}`
+3. **`{settings?.salary && <JSX/>}` renderiza `0` crudo** cuando salary es 0 (gotcha de React con falsy) — usar ternario con `: null`
+4. **Estados numéricos con `undefined`**: inicializar como `useState<number | undefined>(undefined)` y pasar `value={x ?? ''}` al input
+5. **Automatización CDP**: `fill`/`press_key` no reemplazan texto en inputs controlados de RNF (concatenan dígitos); para pruebas E2E usar `setSelectionRange` + tipeo real
+
+### Test
+`components/__tests__/CurrencyInput.test.tsx` — 5 tests: formateo, valores parciales, vaciado (`floatValue: undefined`), bloqueo de negativos, label accesible.

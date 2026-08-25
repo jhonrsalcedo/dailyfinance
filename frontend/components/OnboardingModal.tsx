@@ -9,13 +9,13 @@ import {
   Button,
   Box,
   Typography,
-  TextField,
   Radio,
   RadioGroup,
   FormControlLabel,
   FormControl,
 } from '@mui/material'
 import { useTranslation } from '@/utils/i18n'
+import CurrencyInput from '@/components/CurrencyInput'
 import api from '@/utils/api'
 
 interface OnboardingModalProps {
@@ -27,7 +27,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
   const { language } = useTranslation()
   const [activeStep, setActiveStep] = useState(0)
   const [goal, setGoal] = useState('')
-  const [salary, setSalary] = useState('')
+  const [salary, setSalary] = useState<number | undefined>(undefined)
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1)
@@ -38,16 +38,16 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
   }
 
   const handleCloseModal = async () => {
-    if (activeStep === 2 && salary) {
+    if (activeStep === 2 && salary !== undefined && salary > 0) {
       try {
-        await api.post('/settings', { salary: parseFloat(salary) })
+        await api.post('/settings', { salary })
       } catch (error) {
         // Silent fail - salary is optional
       }
     }
     setActiveStep(0)
     setGoal('')
-    setSalary('')
+    setSalary(undefined)
     onClose()
   }
 
@@ -134,14 +134,10 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
                 ? 'Ingresa tu salario mensual (opcional)'
                 : 'Enter your monthly salary (optional)'}
             </Typography>
-            <TextField
+            <CurrencyInput
               label={isSpanish ? 'Salario mensual' : 'Monthly salary'}
-              type="number"
-              value={salary}
-              onChange={(e) => setSalary(e.target.value)}
-              InputProps={{
-                startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
-              }}
+              value={salary ?? ''}
+              onValueChange={(values) => setSalary(values.floatValue)}
               sx={{ width: '100%', maxWidth: 300 }}
             />
             <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.secondary' }}>

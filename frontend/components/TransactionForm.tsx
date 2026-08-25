@@ -14,7 +14,6 @@ import {
   MenuItem,
   Grid,
   Alert,
-  InputAdornment,
   Box,
   Typography,
   CircularProgress,
@@ -33,6 +32,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import PaymentsIcon from '@mui/icons-material/Payments'
 import { transactionSchema } from '@/schemas/transactionSchema'
 import { TransactionFormData, Transaction } from '@/models'
+import CurrencyInput from '@/components/CurrencyInput'
 
 const COLOMBIAN_BANKS = [
   'Nequi',
@@ -264,25 +264,15 @@ export default function TransactionForm({
                   name="amount"
                   control={control}
                   render={({ field }) => (
-                    <TextField
-                      {...field}
+                    <CurrencyInput
                       label="Monto"
-                      type="number"
                       fullWidth
                       size="medium"
                       disabled={isLoading}
                       error={!!errors.amount}
                       helperText={errors.amount?.message?.toString()}
                       value={field.value ?? ''}
-                      onChange={(e) => {
-                        const val = e.target.value
-                        field.onChange(val === '' ? undefined : Number(val))
-                      }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">$</InputAdornment>
-                        ),
-                      }}
+                      onValueChange={(values) => field.onChange(values.floatValue)}
                     />
                   )}
                 />

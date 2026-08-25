@@ -6,6 +6,24 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
+## [Sin liberar] - 2026-08-24
+
+### Agregado
+- UX: Formateo de moneda en vivo en inputs (`$ 5.700.000` mientras se escribe) con nuevo componente `CurrencyInput` (react-number-format)
+- UX: `inputMode="numeric"` en inputs de moneda (teclado numérico en móvil)
+- Test: 5 tests unitarios de CurrencyInput (formateo, vaciado, negativos, accesibilidad)
+
+### Integrado en
+- TransactionForm (monto, crear + editar)
+- Settings tab Pagos (salario) y UserProfile tab Perfil (salario)
+- Budget dialog (límite)
+- OnboardingModal (salario inicial)
+
+### Corregido
+- Settings: render de `0` crudo en "Último salario guardado" cuando salary era 0 (gotcha de React con falsy)
+
+---
+
 ## [1.0.0] - 2026-05-09
 
 ### Agregado
