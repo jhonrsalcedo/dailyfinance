@@ -399,6 +399,8 @@ Jobs: lint-and-typecheck → build → tests
 
 ```bash
 # 1. Verificar que todo pasa en develop (lint, typecheck, tests, visual)
+# 1b. Gate E2E: levantar servidores y correr suite completa
+#     cd frontend && npm run test:e2e
 # 2. Preparar versión
 #    - Actualizar frontend/config/version.ts (APP_VERSION)
 #    - Mover entrada [Sin liberar] de CHANGELOG.md a [vX.Y.Z] - fecha

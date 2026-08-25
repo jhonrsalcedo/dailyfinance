@@ -79,10 +79,13 @@ npx husky install  # Opcional, prepare script lo hace automático
 3. Push a `develop`
 4. Acumular cambios hasta tener un conjunto coherente (release por lotes)
 5. **PREGUNTAR**: "¿Listo para hacer release vX.Y.Z?"
-6. Si usuario confirma → bump versión + CHANGELOG + merge + tag + push
+6. Si usuario confirma → gate E2E (`npm run test:e2e`) → bump versión + CHANGELOG + merge + tag + push
 
 ### Regla: Releases por Lotes
 > `main` NO se sincroniza después de cada push a develop. Los releases son por lotes: cuando hay features/fixes acumulados que forman una versión coherente. SIEMPRE preguntar antes de pushear a main.
+
+### Regla: E2E como Gate de Release
+> E2E NO se corre por cada fix (lento, propenso a flakiness). Se corre UNA VEZ por release, antes del merge a main: `cd frontend && npm run test:e2e` (requiere frontend :3000 y backend :8000 corriendo). Por fix basta: unit tests (pre-commit) + CI + verificación visual.
 
 ### Pasos Post-Confirmación
 ```bash
@@ -107,6 +110,7 @@ git checkout develop
 ### Checklist Pre-Production
 - [ ] Frontend checks pasan (lint + typecheck + test)
 - [ ] Backend checks pasan (pytest)
+- [ ] Tests E2E pasan (`npm run test:e2e`)
 - [ ] APP_VERSION actualizado en frontend/config/version.ts
 - [ ] CHANGELOG.md actualizado ([Sin liberar] → [vX.Y.Z])
 - [ ] Usuario confirmó → proceder

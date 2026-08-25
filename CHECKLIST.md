@@ -72,6 +72,7 @@ make test        # Backend
 ### Release (por lotes)
 
 - [ ] Conjunto coherente de features/fixes acumulados en develop
+- [ ] Tests E2E pasan (`npm run test:e2e` con servidores levantados) — gate de release
 - [ ] `frontend/config/version.ts` actualizado (bump de APP_VERSION)
 - [ ] `CHANGELOG.md` actualizado ([Sin liberar] → [vX.Y.Z] - fecha)
 - [ ] Commit: `release: vX.Y.Z`
