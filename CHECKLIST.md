@@ -69,6 +69,14 @@ make test        # Backend
 
 ## Pre-Deploy Checklist
 
+### Release (por lotes)
+
+- [ ] Conjunto coherente de features/fixes acumulados en develop
+- [ ] `frontend/config/version.ts` actualizado (bump de APP_VERSION)
+- [ ] `CHANGELOG.md` actualizado ([Sin liberar] → [vX.Y.Z] - fecha)
+- [ ] Commit: `release: vX.Y.Z`
+- [ ] Confirmación explícita antes de pushear a main
+
 ### Configuración
 
 - [ ] Variables de entorno en `.env` (no commitear)

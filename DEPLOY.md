@@ -280,13 +280,16 @@ git push origin main --tags
 - Se muestra en el Sidebar como `v1.3.0`
 
 ### Checklist de Release
+- [ ] Conjunto coherente de cambios acumulados en develop (releases por lotes, no después de cada push)
 - [ ] Actualizar `APP_VERSION` en `config/version.ts`
+- [ ] Actualizar `CHANGELOG.md` (mover [Sin liberar] a [vX.Y.Z] - fecha)
 - [ ] `npm run typecheck` pasa
 - [ ] `npm run test` pasa
 - [ ] `npm run lint` pasa
 - [ ] Commit con mensaje `release: v1.x.x`
 - [ ] Tag con `v1.x.x`
 - [ ] Push a `main` con tags
+- [ ] Volver a `develop`
 
 ### Versionado Semántico (Recomendado)
 | Tipo | Ejemplo | Cuándo usar |

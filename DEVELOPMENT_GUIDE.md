@@ -210,6 +210,34 @@ Se ejecuta automáticamente en GitHub Actions:
     └── checks.yml          # Pipeline CI/CD
 ```
 
+### Flujo de Release (develop → main)
+
+`main` es producción y se actualiza por **releases por lotes**, no después de cada cambio:
+
+```bash
+# 1. Acumular features/fixes en develop (validados: lint + typecheck + tests + visual)
+
+# 2. Preparar versión (en develop)
+#    - frontend/config/version.ts: bump APP_VERSION
+#    - CHANGELOG.md: mover [Sin liberar] a [vX.Y.Z] - fecha
+git commit -am "release: vX.Y.Z"
+
+# 3. Merge a producción (confirmar con el equipo/usuario antes)
+git checkout main
+git pull origin main
+git merge develop
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin main --tags
+
+# 4. Volver a develop
+git checkout develop
+```
+
+**Reglas**:
+- Cada merge a main = una versión liberada (tag + CHANGELOG)
+- Hotfix urgente: fix directo en main + backport a develop
+- Ver también: `AGENTS.md` sección "Releases por Lotes"
+
 ---
 
 ## 8. ESTRUCTURA DE PROYECTO ESTÁNDAR

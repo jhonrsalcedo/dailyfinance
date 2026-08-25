@@ -77,21 +77,36 @@ npx husky install  # Opcional, prepare script lo hace automático
 1. Trabajar en `develop`
 2. Verificar (`npm run check` + tests)
 3. Push a `develop`
-4. **PREGUNTAR**: "¿Listo para enviar a producción?"
-5. Si usuario confirma → merge + tag + push
+4. Acumular cambios hasta tener un conjunto coherente (release por lotes)
+5. **PREGUNTAR**: "¿Listo para hacer release vX.Y.Z?"
+6. Si usuario confirma → bump versión + CHANGELOG + merge + tag + push
 
-### Regla: Siempre Preguntar
-> Después de push exitoso a develop, SIEMPRE preguntar antes de hacer merge a main.
+### Regla: Releases por Lotes
+> `main` NO se sincroniza después de cada push a develop. Los releases son por lotes: cuando hay features/fixes acumulados que forman una versión coherente. SIEMPRE preguntar antes de pushear a main.
 
 ### Pasos Post-Confirmación
 ```bash
+# 1. Preparar versión (en develop)
+#    - frontend/config/version.ts: APP_VERSION = 'vX.Y.Z'
+#    - CHANGELOG.md: mover [Sin liberar] a [vX.Y.Z] - fecha
+#    - Commit: "release: vX.Y.Z"
+
+# 2. Merge a producción
 git checkout main
+git pull origin main
 git merge develop
-git tag -a v1.0.0 -m "Release 1.0.0"
+
+# 3. Tag y push
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin main --tags
+
+# 4. Volver a develop
+git checkout develop
 ```
 
 ### Checklist Pre-Production
 - [ ] Frontend checks pasan (lint + typecheck + test)
 - [ ] Backend checks pasan (pytest)
-- [ ] Usuario confirmou → proceder
+- [ ] APP_VERSION actualizado en frontend/config/version.ts
+- [ ] CHANGELOG.md actualizado ([Sin liberar] → [vX.Y.Z])
+- [ ] Usuario confirmó → proceder

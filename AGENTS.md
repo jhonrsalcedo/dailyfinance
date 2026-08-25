@@ -384,22 +384,39 @@ git commit -m "feat: descripción"
 ### CI/CD en GitHub (con cada push)
 Jobs: lint-and-typecheck → build → tests
 
-### Regla Obligatoria: Sync develop → main
-Cuando los cambios estén verificados y pusheados a `develop`, **SIEMPRE recordar** llevarlos también a `main`:
+### Regla: Releases por Lotes (develop → main)
+
+`main` es la branch de producción. **NO se sincroniza después de cada cambio**: se hacen **releases por lotes** cuando `develop` acumula un conjunto coherente de features/fixes.
+
+**Cuándo hacer release** (uno o más):
+- Varios features/fixes acumulados que forman una versión coherente
+- Cambios que justifican bump de versión (minor o patch)
+- Hotfix urgente que debe salir ya
+
+**Cuándo NO**: después de cada commit/push individual a develop.
+
+### Proceso de Release
 
 ```bash
-# 1. Verificar que todo pasa (lint, typecheck, tests)
-# 2. Merge develop → main
+# 1. Verificar que todo pasa en develop (lint, typecheck, tests, visual)
+# 2. Preparar versión
+#    - Actualizar frontend/config/version.ts (APP_VERSION)
+#    - Mover entrada [Sin liberar] de CHANGELOG.md a [vX.Y.Z] - fecha
+#    - Commit: "release: vX.Y.Z"
+
+# 3. Merge a producción
 git checkout main
 git pull origin main
 git merge develop
 
-# 3. Push a producción
-git push origin main
+# 4. Tag y push
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin main --tags
 ```
 
-- Confirmar con el usuario antes de pushear a `main` (producción)
-- Después del merge: actualizar documentación LEARN_*.md si aplica
+- **Confirmar con el usuario antes de pushear a `main`** (producción)
+- Después del release: actualizar documentación LEARN_*.md si aplica
+- Hotfix urgente: fix directo en `main` + push, y backport a `develop` en el siguiente commit
 
 ---
 
@@ -416,10 +433,9 @@ git push origin main
 
 ## Workflow de Desarrollo
 
-1. **Crear branch**: `git checkout -b feature/nueva-feature`
-2. **Desarrollar**: Implementar feature
-3. **Testing**: Ejecutar `npm run test` y `make test`
-4. **Pre-commit**: Verificar que husky pase
-5. **Commit**: `git commit -m "feat: descripción"`
-6. **Push**: `git push origin feature/nueva-feature`
-7. **PR**: Crear Pull Request en GitHub
+1. **Desarrollar en `develop`**: implementar feature/fix (o branch `feature/x` si es grande)
+2. **Testing**: Ejecutar `npm run test` y `make test`
+3. **Pre-commit**: Verificar que husky pase
+4. **Commit**: `git commit -m "feat: descripción"`
+5. **Push**: `git push origin develop`
+6. **Release (por lotes)**: cuando haya un conjunto coherente → bump de versión + CHANGELOG + merge a `main` + tag (ver "Releases por Lotes" arriba)

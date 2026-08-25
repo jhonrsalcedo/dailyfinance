@@ -88,11 +88,17 @@ npm run test     # tests
 
 ## Deployment
 - Ramas: `develop` (dev) → `main` (prod)
-- Después de push a develop, PREGUNTAR: "¿Listo para enviar a producción?"
+- Releases por lotes: NO sincronizar main después de cada push a develop
+- Hacer release cuando hay un conjunto coherente de cambios (bump de versión + CHANGELOG)
+- PREGUNTAR: "¿Listo para hacer release vX.Y.Z?"
 - Si usuario confirma:
-  - git merge develop
-  - git tag -a v1.0.0 -m "Release 1.0.0"
+  - Actualizar APP_VERSION en frontend/config/version.ts
+  - Mover [Sin liberar] de CHANGELOG.md a [vX.Y.Z] - fecha
+  - Commit: "release: vX.Y.Z"
+  - git checkout main && git merge develop
+  - git tag -a vX.Y.Z -m "Release vX.Y.Z"
   - git push origin main --tags
+  - git checkout develop
 
 ---
 
