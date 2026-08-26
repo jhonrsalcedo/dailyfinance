@@ -407,14 +407,15 @@ export default function BudgetPage() {
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <FormControl fullWidth disabled={!!editingBudget}>
-                <InputLabel>Categoría</InputLabel>
-                <Select
-                  value={formData.category_id}
-                  label="Categoría"
-                  onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                >
+             <Grid item xs={12}>
+               <FormControl fullWidth disabled={!!editingBudget}>
+                 <InputLabel id="budget-category-label">Categoría</InputLabel>
+                 <Select
+                   labelId="budget-category-label"
+                   value={formData.category_id}
+                   label="Categoría"
+                   onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                 >
                   {categories?.map((cat: Category) => (
                     <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
                   ))}
